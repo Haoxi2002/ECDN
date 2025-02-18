@@ -31,7 +31,6 @@ class Node:
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""
-        # print(f"Node {self.hostname}: Fetching {path} from origin...")
         # 模拟从源站获取的内容
         content_size = 1  # 1MB
         self.cache[path] = content_size  # 将获取的内容加入缓存

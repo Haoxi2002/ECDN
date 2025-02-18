@@ -9,6 +9,8 @@ class RequestHandler:
     def __init__(self, hash_ring: HashRing, max_iterations: int = 5):
         self.hash_ring = hash_ring
         self.max_iterations = max_iterations
+        self.fetch_from_origin_num = 0  # 回源量
+        self.request_num = 0  # 请求量
 
     def handle_request(self, request: Request):
         """处理用户请求，分发到合适的节点"""
@@ -19,11 +21,10 @@ class RequestHandler:
         response = Response()
         if node:
             response = node.handle_request(request)
-            # print(f"Request for {path} handled by {node.hostname}.")
-            # print(f"Content: {content}")
         else:
-            # print("Request could not be routed after maximum iterations.")
             response.fetch_flag = True
+        self.request_num += 1
+        self.fetch_from_origin_num += response.fetch_flag
         return response
 
     def find_node(self, fid_hash: int):

@@ -2,9 +2,11 @@ import bisect
 
 
 class HashRing:
-    def __init__(self):
+    def __init__(self, nodes: list):
         self.ring = []  # 按哈希值排序的虚拟节点列表
         self.node_map = {}  # 哈希值到节点的映射
+        for node in nodes:
+            self.add_node(node)
 
     def add_node(self, node):
         for virtual_hash, _ in node.virtual_nodes.items():
