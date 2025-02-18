@@ -7,3 +7,4 @@ class Request:
 class Response:
     def __init__(self, fetch_flag: bool = False):
         self.fetch_flag = fetch_flag  # 是否回源
+        self.content_size = 0

@@ -2,7 +2,7 @@ import hashlib
 
 import xxhash
 from hash_ring import HashRing
-from entity import Response
+from entity import Response, Request
 
 
 class RequestHandler:
@@ -11,15 +11,15 @@ class RequestHandler:
         self.max_iterations = max_iterations
         self.hash_max = 2147483647
 
-    def handle_request(self, hostname: str, path: str):
+    def handle_request(self, request: Request):
         """处理用户请求，分发到合适的节点"""
-        fid = hashlib.md5(f"{path}".encode("utf-8")).hexdigest()
+        fid = hashlib.md5(f"{request.url}".encode("utf-8")).hexdigest()
         fid_hash = xxhash.xxh64(fid).intdigest() % self.hash_max
 
         node = self.find_node(fid_hash)
         response = Response()
         if node:
-            response = node.handle_request(path)
+            response = node.handle_request(request)
             # print(f"Request for {path} handled by {node.hostname}.")
             # print(f"Content: {content}")
         else:

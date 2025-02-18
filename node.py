@@ -2,7 +2,7 @@ from math import floor
 
 import xxhash
 
-from entity import Response
+from entity import Response, Request
 
 
 class Node:
@@ -30,15 +30,15 @@ class Node:
         """模拟回源获取数据"""
         # print(f"Node {self.hostname}: Fetching {path} from origin...")
         # 模拟从源站获取的内容
-        content = 1  # 1MB
-        self.cache[path] = content  # 将获取的内容加入缓存
-        return content
+        content_size = 1  # 1MB
+        self.cache[path] = content_size  # 将获取的内容加入缓存
+        return content_size
 
-    def handle_request(self, path: str):
+    def handle_request(self, request: Request):
         """处理请求，先查缓存，缓存未命中则回源"""
-        content = self.get_from_cache(path)
+        content = self.get_from_cache(request.url)
         response = Response()
         if not content:
             response.fetch_flag = True
-            content = self.fetch_from_origin(path)
+            response.content_size = self.fetch_from_origin(request.url)
         return response

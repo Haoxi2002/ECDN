@@ -33,7 +33,7 @@ def main():
             data = json.loads(line)
             response = requester.send_request(Request(data['req_url'], data['ts']), request_handler)
             fetch_from_origin_num += response.fetch_flag
-        except KeyError as keyError:
+        except KeyError:
             # print("This request hasn't url or ts or ...")
             pass
     print("Request Num:", len(request_datas))

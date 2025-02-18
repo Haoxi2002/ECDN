@@ -1,5 +1,3 @@
-import random
-
 from entity import Request
 
 
@@ -10,5 +8,5 @@ class Requester:  # 业务
     def send_request(self, request: Request, request_handler):
         """随机选择路径发送请求"""
         # print(f"Requester {self.hostname} sending request for {path}")
-        response = request_handler.handle_request(self.hostname, request.url)
+        response = request_handler.handle_request(request)
         return response
