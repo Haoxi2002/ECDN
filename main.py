@@ -6,6 +6,7 @@ from node import Node
 from hash_ring import HashRing
 from request_handler import RequestHandler
 from requester import Requester
+from entity import Request
 
 
 def main():
@@ -13,7 +14,7 @@ def main():
     node_file = open("./data/服务器请求量.csv", 'r')
     df = pd.read_csv(node_file)
 
-    nodes = [Node(node[0], node[1] / 1024 / 1024) for node in df.values]
+    nodes = [Node(hostname, eth_up_max / 1024 / 1024) for hostname, eth_up_max, _ in df.values]
 
     # 初始化哈希环
     hash_ring = HashRing()
@@ -28,10 +29,13 @@ def main():
     request_datas = open("./data/202501200000_000_0", "r", encoding="utf-8").readlines()
     fetch_from_origin_num = 0
     for line in request_datas:
-        data = json.loads(line)
-        if 'req_url' in data.keys():
-            hostname, flag = requester.send_request(data['req_url'], request_handler)
-            fetch_from_origin_num += (flag == False)
+        try:
+            data = json.loads(line)
+            response = requester.send_request(Request(data['req_url'], data['ts']), request_handler)
+            fetch_from_origin_num += response.fetch_flag
+        except KeyError as keyError:
+            # print("This request hasn't url or ts or ...")
+            pass
     print("Request Num:", len(request_datas))
     print("Fetch Num:", fetch_from_origin_num)
     print("Fetch Ratio:", fetch_from_origin_num / len(request_datas) * 100)

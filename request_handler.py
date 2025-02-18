@@ -2,6 +2,7 @@ import hashlib
 
 import xxhash
 from hash_ring import HashRing
+from entity import Response
 
 
 class RequestHandler:
@@ -16,15 +17,15 @@ class RequestHandler:
         fid_hash = xxhash.xxh64(fid).intdigest() % self.hash_max
 
         node = self.find_node(fid_hash)
+        response = Response()
         if node:
-            content, flag = node.handle_request(path)
+            response = node.handle_request(path)
             # print(f"Request for {path} handled by {node.hostname}.")
             # print(f"Content: {content}")
         else:
             # print("Request could not be routed after maximum iterations.")
-            flag = False
-            pass
-        return node.hostname, flag
+            response.fetch_flag = True
+        return response
 
     def find_node(self, fid_hash: int):
         """根据哈希值找到节点，支持负载转移"""

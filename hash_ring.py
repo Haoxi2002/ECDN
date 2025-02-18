@@ -18,8 +18,6 @@ class HashRing:
                 del self.node_map[virtual_hash]
 
     def get_node(self, hash_value):
-        if not self.ring:
-            return None
         idx = bisect.bisect_left(self.ring, hash_value)
         if idx == len(self.ring):
             idx = 0

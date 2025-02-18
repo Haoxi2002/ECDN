@@ -2,6 +2,8 @@ from math import floor
 
 import xxhash
 
+from entity import Response
+
 
 class Node:
     def __init__(self, hostname: str, bandwidth: float):
@@ -28,19 +30,15 @@ class Node:
         """模拟回源获取数据"""
         # print(f"Node {self.hostname}: Fetching {path} from origin...")
         # 模拟从源站获取的内容
-        content = f"Origin content of {path}"
+        content = 1  # 1MB
         self.cache[path] = content  # 将获取的内容加入缓存
         return content
 
     def handle_request(self, path: str):
         """处理请求，先查缓存，缓存未命中则回源"""
         content = self.get_from_cache(path)
-        if content:
-            # print(f"Node {self.hostname}: Cache hit for {path}")
-            flag = True
-            pass
-        else:
-            # print(f"Node {self.hostname}: Cache miss for {path}")
-            flag = False
+        response = Response()
+        if not content:
+            response.fetch_flag = True
             content = self.fetch_from_origin(path)
-        return content, flag
+        return response
