@@ -1,15 +1,13 @@
 from math import floor
 
-import xxhash
-
-from entity import Response, Request
+from util.entity import Response, Request
+from util.tool import cdn_hash
 
 
 class Node:
     def __init__(self, hostname: str, bandwidth: float):
         self.hostname = hostname
         self.bandwidth = bandwidth
-        self.hash_max = 2147483647
         self.virtual_nodes = self.generate_virtual_nodes()
         self.cache = {}  # 模拟缓存，键为资源路径，值为资源内容
 
@@ -18,7 +16,7 @@ class Node:
         num_virtual_nodes = floor(self.bandwidth // 10)  # 每 10MB 对应一个虚拟节点
         for i in range(num_virtual_nodes):
             virtual_node_key = f"{self.hostname}{i}" if i != 0 else self.hostname
-            virtual_node_hash = xxhash.xxh64(virtual_node_key).intdigest() % self.hash_max
+            virtual_node_hash = cdn_hash(virtual_node_key)
             virtual_nodes[virtual_node_hash] = self
         return virtual_nodes
 

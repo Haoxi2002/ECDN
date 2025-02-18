@@ -6,7 +6,7 @@ from node import Node
 from hash_ring import HashRing
 from request_handler import RequestHandler
 from requester import Requester
-from entity import Request
+from util.entity import Request
 
 
 def main():

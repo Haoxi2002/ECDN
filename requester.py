@@ -1,4 +1,4 @@
-from entity import Request
+from util.entity import Request
 
 
 class Requester:  # 业务
