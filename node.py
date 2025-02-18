@@ -3,6 +3,8 @@ from math import ceil
 from util.entity import Response, Request
 from util.tool import cdn_hash
 
+import matplotlib.pyplot as plt
+
 
 class Node:
     def __init__(self, id: int, hostname: str, bandwidth: float, cost_method: str):
@@ -11,7 +13,8 @@ class Node:
         self.bandwidth = bandwidth
         self.cost_method = cost_method
         self.virtual_nodes = self.generate_virtual_nodes()
-        self.cache = {}  # 模拟缓存，键为资源路径，值为资源内容
+        self.cache = {}  # 模拟缓存，键为资源路径，值为资源大小
+        self.bw_list = {}  # 带宽列表，键为时间戳，值为该时间戳的带宽大小
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}
@@ -36,9 +39,26 @@ class Node:
 
     def handle_request(self, request: Request):
         """处理请求，先查缓存，缓存未命中则回源"""
-        content = self.get_from_cache(request.url)
+        content_size = self.get_from_cache(request.url)
         response = Response()
-        if not content:
+        if not content_size:
             response.fetch_flag = True
             response.content_size = self.fetch_from_origin(request.url)
+        else:
+            response.content_size = content_size
+        if request.timestamp not in self.bw_list:
+            self.bw_list[request.timestamp] = 0
+        self.bw_list[request.timestamp] += response.content_size
         return response
+
+    def draw_bw_list(self):
+        bw_example = sorted(list(self.bw_list.items()), key=lambda t: t[0])
+        x = range(len(bw_example))
+        y = [value for _, value in bw_example]
+
+        plt.plot(x, y)
+        plt.xlabel('timestep')
+        plt.ylabel('bandwidth')
+        plt.title(f'node_{self.id}')
+        plt.savefig(f'./img/node_{self.id}.png')
+        plt.close()
