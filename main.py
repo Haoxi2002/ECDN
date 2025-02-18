@@ -1,5 +1,4 @@
 import json
-
 import pandas as pd
 
 from node import Node
@@ -7,14 +6,22 @@ from hash_ring import HashRing
 from request_handler import RequestHandler
 from requester import Requester
 from util.entity import Request
+from util.tool import Hostname_Generator
 
 
 def main():
-    # 初始化节点
-    node_file = open("./data/服务器请求量.csv", 'r')
-    df = pd.read_csv(node_file)
+    cost_methods = ['A', 'B', 'C', 'D', 'E']
 
-    nodes = [Node(hostname, eth_up_max / 1024 / 1024) for hostname, eth_up_max, _ in df.values]
+    # # 初始化节点（文件读取）
+    # node_file = open("./data/服务器请求量.csv", 'r')
+    # df = pd.read_csv(node_file)
+    #
+    # nodes = [Node(hostname, eth_up_max / 1024 / 1024) for hostname, eth_up_max, _ in df.values]
+
+    # 初始化节点（随机生成）
+    node_nums = 100
+    hostname_generator = Hostname_Generator()
+    nodes = [Node(i, hostname_generator.generate(), 1024, cost_methods[i % 5]) for i in range(node_nums)]
 
     # 初始化哈希环
     hash_ring = HashRing()
