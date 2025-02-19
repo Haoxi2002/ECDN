@@ -1,3 +1,4 @@
+import os
 from math import ceil
 
 from util.entity import Response, Request
@@ -55,9 +56,11 @@ class Node:
         x = range(len(bw_example))
         y = [value for _, value in bw_example]
 
+        if not os.path.exists("./results/img"):
+            os.mkdir("./results/img")
         plt.plot(x, y)
         plt.xlabel('timestep')
         plt.ylabel('bandwidth')
         plt.title(f'node_{self.id}')
-        plt.savefig(f'./img/node_{self.id}.png')
+        plt.savefig(f'./results/img/node_{self.id}.png')
         plt.close()

@@ -1,5 +1,5 @@
 class Request:
-    def __init__(self, url: str, timestamp: str, ):
+    def __init__(self, url: str, timestamp: int, ):
         self.url = url  # 请求的 URL
         self.timestamp = timestamp  # 请求的时间戳
 

@@ -58,7 +58,7 @@ def cal_cost(bandwidth: list, cost_method: str):
     else:
         raise ValueError("Invalid cost method code")  # 如果计费方式无效，抛出异常
 
-    
+
 class Hostname_Generator:
     def __init__(self):
         self.l = []
@@ -69,3 +69,21 @@ class Hostname_Generator:
             new_hostname = f"bkj-{''.join(random.choices(string.hexdigits, k=8)).upper()}"
         return new_hostname
 
+
+class URL_Generator:
+    def __init__(self, app_id, url_num):
+        self.app_id = app_id
+        self.url_num = url_num
+        self.l = []
+        self.generate()
+
+    def generate(self):
+        seen_urls = set(self.l)  # 使用集合加快查重速度
+        while len(self.l) < self.url_num:
+            new_url = f"http://{self.app_id}.com/{''.join(random.choices(string.ascii_letters + string.digits + '_', k=30)).lower()}"
+            if new_url not in seen_urls:
+                seen_urls.add(new_url)
+                self.l.append(new_url)
+
+    def get_url(self):
+        return self.l[random.randint(0, len(self.l) - 1)]
