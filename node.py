@@ -2,7 +2,7 @@ import os
 from math import ceil
 
 from util.entity import Response, Request
-from util.tool import cdn_hash
+from util.tool import cdn_hash, cal_cost
 
 import matplotlib.pyplot as plt
 
@@ -51,16 +51,11 @@ class Node:
         self.bw_list[request.timestamp] += response.content_size
         return response
 
-    def draw_bw_list(self):
-        bw_example = sorted(list(self.bw_list.items()), key=lambda t: t[0])
-        x = range(len(bw_example))
-        y = [value for _, value in bw_example]
+    def get_bw_list(self):
+        bw_ls = []
+        for i in range(0, 2592000, 300):
+            bw_ls.append((i, self.bw_list[i] if i in self.bw_list else 0))
+        return bw_ls
 
-        if not os.path.exists("./results/img"):
-            os.mkdir("./results/img")
-        plt.plot(x, y)
-        plt.xlabel('timestep')
-        plt.ylabel('bandwidth')
-        plt.title(f'node_{self.id}')
-        plt.savefig(f'./results/img/node_{self.id}.png')
-        plt.close()
+    def get_cost(self):
+        return cal_cost([i[1] for i in self.get_bw_list()], self.cost_method)

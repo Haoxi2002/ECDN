@@ -47,16 +47,17 @@ def main():
     if not os.path.exists("./results/csv"):
         os.mkdir("./results/csv")
 
+    print("Nodes:")
     for node in nodes:
-        df = pd.DataFrame(list(node.bw_list.items()), columns=['timestep', 'bandwidth'])
+        df = pd.DataFrame(node.get_bw_list(), columns=['timestamp', 'bandwidth'])
         df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
-        if node.id < 5:
-            node.draw_bw_list()
+        print(f"\tCost Method: {node.cost_method}, cost: {node.get_cost()}")
 
+    print("Requesters:")
     for requester in requesters:
-        df = pd.DataFrame(list(requester.bw_list.items()), columns=['timestep', 'bandwidth'])
+        df = pd.DataFrame(requester.get_bw_list(), columns=['timestamp', 'bandwidth'])
         df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
-        requester.draw_bw_list()
+        print(f"\tCost Method: {requester.cost_method}, cost: {requester.get_cost()}")
 
 
 if __name__ == "__main__":

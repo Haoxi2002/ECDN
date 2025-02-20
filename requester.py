@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from util.entity import Request
-from util.tool import URL_Generator
+from util.tool import URL_Generator, cal_cost
 
 
 class Requester:  # 业务
@@ -33,8 +33,8 @@ class Requester:  # 业务
         #         pass
 
         df = pd.read_csv("./data/requester_simulation.csv", index_col=0)
-        for i in tqdm(range(2592000), desc=f"app_id: {self.app_id}"):
-            request_num = df.iloc[i % 86400, i // 86400] // 1000
+        for i in tqdm(range(0, 2592000, 300), desc=f"app_id: {self.app_id}"):
+            request_num = df.iloc[i % 86400, i // 86400]
             for j in range(request_num):
                 request = Request(self.url_generator.get_url(), i)
                 response = request_handler.handle_request(request)
@@ -42,16 +42,11 @@ class Requester:  # 业务
                     self.bw_list[request.timestamp] = 0
                 self.bw_list[request.timestamp] += response.content_size
 
-    def draw_bw_list(self):
-        bw_example = sorted(list(self.bw_list.items()), key=lambda t: t[0])
-        x = range(len(bw_example))
-        y = [value for _, value in bw_example]
+    def get_bw_list(self):
+        bw_ls = []
+        for i in range(0, 2592000, 300):
+            bw_ls.append((i, self.bw_list[i] if i in self.bw_list else 0))
+        return bw_ls
 
-        if not os.path.exists("./results/img"):
-            os.mkdir("./results/img")
-        plt.plot(x, y)
-        plt.xlabel('timestep')
-        plt.ylabel('bandwidth')
-        plt.title(f'app_{self.id}')
-        plt.savefig(f'./results/img/app_{self.id}.png')
-        plt.close()
+    def get_cost(self):
+        return cal_cost([i[1] for i in self.get_bw_list()], self.cost_method)
