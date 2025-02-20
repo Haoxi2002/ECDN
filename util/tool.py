@@ -28,14 +28,15 @@ def cal_cost(bandwidth: list, cost_method: str):
         return round(sum(daily_bandwidth_95) / len(daily_bandwidth_95), 2)
 
     def calc_peak_95():
-        all_peak_bandwidth = []
-        # 遍历30天，每天的108到144晚高峰数据
+        daily_peak_95 = []  # 存储每一天的95%带宽值
+        # 遍历30天，每天的240到276晚高峰数据
         for i in range(0, len(bandwidth), 288):
-            peak_bandwidth = bandwidth[i + 108:i + 144]  # 提取每天的108到144数据
-            all_peak_bandwidth.extend(peak_bandwidth)  # 合并到一个大列表
-        all_peak_bandwidth.sort(reverse=True)  # 对整个数据进行降序排序
-        peak_95_index = int(len(all_peak_bandwidth) * (1 - 0.95))  # 找到95%点的索引
-        return round(all_peak_bandwidth[peak_95_index], 2)  # 返回该点的带宽值
+            peak_bandwidth = bandwidth[i + 240:i + 276]  # 提取每天的240到276数据（晚上8点到晚上11点）
+            peak_bandwidth.sort(reverse=True)  # 对该天数据进行降序排序
+            peak_95_index = int(len(peak_bandwidth) * (1 - 0.95))  # 找到该天95%点的索引
+            daily_peak_95.append(round(peak_bandwidth[peak_95_index], 2))  # 添加到日均列表
+        # 计算所有天数的95%带宽值的平均值
+        return round(sum(daily_peak_95) / len(daily_peak_95), 2)
 
     def calc_flat_rate():
         return round(150, 2)
