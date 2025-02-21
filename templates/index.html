@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>节点和请求者监控</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+        .chart {
+            width: 95vw;  /* 使用视窗宽度的95% */
+            height: 45vh;  /* 使用视窗高度的45% */
+            margin: 20px auto;  /* 上下间距20px，左右自动居中 */
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>带宽使用情况</h2>
+    <div id="bandwidth-chart" class="chart"></div>
+    
+    <h2>成本情况</h2>
+    <div id="cost-chart" class="chart"></div>
+
+    <script>
+        let bandwidthChart;
+        let costChart;
+        // 存储选中状态
+        let bandwidthSelected = {};
+        let costSelected = {};
+
+        function initCharts() {
+            bandwidthChart = echarts.init(document.getElementById('bandwidth-chart'));
+            costChart = echarts.init(document.getElementById('cost-chart'));
+
+            // 监听图例选择事件
+            bandwidthChart.on('legendselectchanged', function(params) {
+                bandwidthSelected = params.selected;
+            });
+            costChart.on('legendselectchanged', function(params) {
+                costSelected = params.selected;
+            });
+
+            updateCharts();
+        }
+
+        function updateCharts() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    const bandwidthSeries = [];
+                    const costSeries = [];
+                    
+                    // 添加节点数据
+                    for (let i = 0; i < 10; i++) {
+                        bandwidthSeries.push({
+                            name: `Node ${i}`,
+                            type: 'line',
+                            data: data.nodes.bandwidths[i],
+                            smooth: true,
+                            lineStyle: {
+                                width: 2
+                            },
+                            symbol: 'none',
+                            selected: false  // 默认隐藏
+                        });
+                        costSeries.push({
+                            name: `Node ${i}`,
+                            type: 'line',
+                            data: data.nodes.costs[i],
+                            smooth: true,
+                            lineStyle: {
+                                width: 2
+                            },
+                            symbol: 'none',
+                            selected: false  // 默认隐藏
+                        });
+                    }
+                    
+                    // 添加请求者数据
+                    for (let i = 0; i < 5; i++) {
+                        bandwidthSeries.push({
+                            name: `Requester ${i}`,
+                            type: 'line',
+                            data: data.requesters.bandwidths[i],
+                            smooth: true,
+                            lineStyle: {
+                                width: 2
+                            },
+                            symbol: 'none',
+                            selected: false  // 默认隐藏
+                        });
+                        costSeries.push({
+                            name: `Requester ${i}`,
+                            type: 'line',
+                            data: data.requesters.costs[i],
+                            smooth: true,
+                            lineStyle: {
+                                width: 2
+                            },
+                            symbol: 'none',
+                            selected: false  // 默认隐藏
+                        });
+                    }
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                const timestamp = data.start_timestamp + params[0].axisValue * 300;  // 实际时间戳
+                                const totalDays = Math.floor(timestamp / 86400);  // 总天数
+                                const totalHours = Math.floor((timestamp % 86400) / 3600);  // 当天小时数
+                                const totalMinutes = Math.floor((timestamp % 3600) / 60);  // 当前小时分钟数
+                                let result = `第${totalDays}天 ${totalHours}时${totalMinutes}分<br/>`;
+                                params.forEach(param => {
+                                    result += `${param.seriesName}: ${param.value.toFixed(2)}<br/>`;
+                                });
+                                return result;
+                            }
+                        },
+                        legend: {
+                            data: [...Array(10).keys()].map(i => `Node ${i}`).concat(
+                                [...Array(5).keys()].map(i => `Requester ${i}`)
+                            ),
+                            type: 'scroll',
+                            orient: 'vertical',
+                            right: '1%',  // 减小图例右边距
+                            top: 20,
+                            bottom: 20,
+                            selected: Object.keys(bandwidthSelected).length > 0 
+                                ? bandwidthSelected  // 使用已保存的选中状态
+                                : Object.fromEntries(  // 首次加载时全部隐藏
+                                    [...Array(10).keys()].map(i => [`Node ${i}`, false])
+                                        .concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))
+                                )
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '10%',  // 减小右边距
+                            bottom: '5%',   // 由于没有滑动条，可以减小底部边距
+                            top: '15%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: [...Array(data.timestamps.length).keys()],
+                            name: '时间',
+                            axisLabel: {
+                                formatter: function(value) {
+                                    const timestamp = data.start_timestamp + value * 300;
+                                    const days = Math.floor(timestamp / 86400);
+                                    return `${days}d`;
+                                },
+                                interval: 288  // 每天显示一个刻度
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '带宽 (MB/s)',
+                            splitLine: {
+                                show: true,
+                                lineStyle: {
+                                    type: 'dashed'
+                                }
+                            }
+                        },
+                        series: bandwidthSeries,
+                        animation: false
+                    };
+
+                    const costOption = {
+                        ...option,
+                        legend: {
+                            ...option.legend,
+                            selected: Object.keys(costSelected).length > 0 
+                                ? costSelected
+                                : Object.fromEntries(
+                                    [...Array(10).keys()].map(i => [`Node ${i}`, false])
+                                        .concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))
+                                )
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '成本',
+                            splitLine: {
+                                show: true,
+                                lineStyle: {
+                                    type: 'dashed'
+                                }
+                            }
+                        },
+                        series: costSeries
+                    };
+
+                    bandwidthChart.setOption(option);
+                    costChart.setOption(costOption);
+                });
+        }
+
+        window.addEventListener('load', initCharts);
+        window.addEventListener('resize', () => {
+            bandwidthChart && bandwidthChart.resize();
+            costChart && costChart.resize();
+        });
+
+        // 每秒更新一次数据
+        setInterval(updateCharts, 1000);
+    </script>
+</body>
+</html> 
