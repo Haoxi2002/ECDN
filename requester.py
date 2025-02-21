@@ -1,7 +1,7 @@
 import json
 import os
+import random
 
-from tqdm import tqdm  # 导入进度条库
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -15,9 +15,12 @@ class Requester:  # 业务
         self.app_id = app_id
         self.cost_method = cost_method
         self.url_generator = url_generator
-        self.bw_list = {}  # 带宽列表，键为时间戳，值为该时间戳的带宽大小
+        self.bandwidth = 0
+        self.bandwidths = []
+        self.costs = []
+        self.request_nums = pd.read_csv("./data/requester_simulation.csv")['log_count_day1']
 
-    def send_request(self, request_handler):
+    def send_request(self, request_handler, timestamp):
         # # 读文件发送请求
         # request_datas = open("./data/202501200000_000_0", "r", encoding="utf-8").readlines()
         # for line in request_datas:
@@ -32,21 +35,23 @@ class Requester:  # 业务
         #         # print("This request hasn't url or ts or ...")
         #         pass
 
-        df = pd.read_csv("./data/requester_simulation.csv", index_col=0)
-        for i in tqdm(range(0, 2592000, 300), desc=f"app_id: {self.app_id}"):
-            request_num = df.iloc[i % 86400, i // 86400]
-            for j in range(request_num):
-                request = Request(self.url_generator.get_url(), i)
-                response = request_handler.handle_request(request)
-                if request.timestamp not in self.bw_list:
-                    self.bw_list[request.timestamp] = 0
-                self.bw_list[request.timestamp] += response.content_size
+        base_request_num = self.request_nums[timestamp % 86400]
+        fluctuation = int(base_request_num * 0.2)  # 计算20%的波动
+        request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
+        for j in range(request_num):
+            request = Request(self.url_generator.get_url(), timestamp)
+            response = request_handler.handle_request(request)
+            self.bandwidth += response.content_size
 
-    def get_bw_list(self):
-        bw_ls = []
-        for i in range(0, 2592000, 300):
-            bw_ls.append((i, self.bw_list[i] if i in self.bw_list else 0))
-        return bw_ls
+    def record(self):
+        self.bandwidths.append(self.bandwidth)
+        self.bandwidth = 0
+        self.costs.append(self.get_cost())
 
     def get_cost(self):
-        return cal_cost([i[1] for i in self.get_bw_list()], self.cost_method)
+        # 如果bandwidths长度不足8640，在前面补0
+        if len(self.bandwidths) < 8640:
+            padding = [0] * (8640 - len(self.bandwidths))
+            return cal_cost(padding + self.bandwidths, self.cost_method)
+        else:
+            return cal_cost(self.bandwidths[-8640:], self.cost_method)

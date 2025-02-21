@@ -15,7 +15,9 @@ class Node:
         self.cost_method = cost_method
         self.virtual_nodes = self.generate_virtual_nodes()
         self.cache = {}  # 模拟缓存，键为资源路径，值为资源大小
-        self.bw_list = {}  # 带宽列表，键为时间戳，值为该时间戳的带宽大小
+        self.bandwidth = 0
+        self.bandwidths = []
+        self.costs = []
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}
@@ -46,16 +48,18 @@ class Node:
             response.content_size = self.fetch_from_origin(request.url)
         else:
             response.content_size = content_size
-        if request.timestamp not in self.bw_list:
-            self.bw_list[request.timestamp] = 0
-        self.bw_list[request.timestamp] += response.content_size
+        self.bandwidth += response.content_size
         return response
 
-    def get_bw_list(self):
-        bw_ls = []
-        for i in range(0, 2592000, 300):
-            bw_ls.append((i, self.bw_list[i] if i in self.bw_list else 0))
-        return bw_ls
+    def record(self):
+        self.bandwidths.append(self.bandwidth)
+        self.bandwidth = 0
+        self.costs.append(self.get_cost())
 
     def get_cost(self):
-        return cal_cost([i[1] for i in self.get_bw_list()], self.cost_method)
+        # 如果bandwidths长度不足8640，在前面补0
+        if len(self.bandwidths) < 8640:
+            padding = [0] * (8640 - len(self.bandwidths))
+            return cal_cost(padding + self.bandwidths, self.cost_method)
+        else:
+            return cal_cost(self.bandwidths[-8640:], self.cost_method)

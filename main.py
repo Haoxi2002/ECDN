@@ -1,5 +1,6 @@
 import json
 import os.path
+import tqdm
 
 import pandas as pd
 
@@ -35,8 +36,13 @@ def main():
     requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in range(5)]
 
     # 业务发送请求
-    for requester in requesters:
-        requester.send_request(request_handler)
+    for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
+        for requester in requesters:
+            requester.send_request(request_handler, timestamp)
+        for node in nodes:
+            node.record()
+        for requester in requesters:
+            requester.record()
 
     print("Request Num:", request_handler.request_num)
     print("Fetch Num:", request_handler.fetch_from_origin_num)
@@ -47,17 +53,13 @@ def main():
     if not os.path.exists("./results/csv"):
         os.mkdir("./results/csv")
 
-    print("Nodes:")
     for node in nodes:
-        df = pd.DataFrame(node.get_bw_list(), columns=['timestamp', 'bandwidth'])
+        df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
         df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
-        print(f"\tCost Method: {node.cost_method}, cost: {node.get_cost()}")
 
-    print("Requesters:")
     for requester in requesters:
-        df = pd.DataFrame(requester.get_bw_list(), columns=['timestamp', 'bandwidth'])
+        df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
         df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
-        print(f"\tCost Method: {requester.cost_method}, cost: {requester.get_cost()}")
 
 
 if __name__ == "__main__":
