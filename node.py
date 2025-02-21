@@ -15,7 +15,7 @@ class Node:
         self.cost_method = cost_method
         self.virtual_nodes = self.generate_virtual_nodes()
         self.cache = {}  # 模拟缓存，键为资源路径，值为资源大小
-        self.bandwidth = 0
+        self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
 
@@ -48,12 +48,12 @@ class Node:
             response.content_size = self.fetch_from_origin(request.url)
         else:
             response.content_size = content_size
-        self.bandwidth += response.content_size
+        self.current_bandwidth += response.content_size
         return response
 
     def record(self):
-        self.bandwidths.append(self.bandwidth)
-        self.bandwidth = 0
+        self.bandwidths.append(self.current_bandwidth)
+        self.current_bandwidth = 0
         self.costs.append(self.get_cost())
 
     def get_cost(self):

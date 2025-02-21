@@ -15,7 +15,7 @@ class Requester:  # 业务
         self.app_id = app_id
         self.cost_method = cost_method
         self.url_generator = url_generator
-        self.bandwidth = 0
+        self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
         self.request_nums = pd.read_csv("./data/requester_simulation.csv")['log_count_day1']
@@ -41,11 +41,11 @@ class Requester:  # 业务
         for j in range(request_num):
             request = Request(self.url_generator.get_url(), timestamp)
             response = request_handler.handle_request(request)
-            self.bandwidth += response.content_size
+            self.current_bandwidth += response.content_size
 
     def record(self):
-        self.bandwidths.append(self.bandwidth)
-        self.bandwidth = 0
+        self.bandwidths.append(self.current_bandwidth)
+        self.current_bandwidth = 0
         self.costs.append(self.get_cost())
 
     def get_cost(self):
