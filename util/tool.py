@@ -1,4 +1,3 @@
-import math
 import random
 import string
 
@@ -13,7 +12,7 @@ def cdn_hash(content: str):
 def cal_cost(bandwidth: list, cost_method: str):
     def calc_month_95():
         sorted_bandwidth = sorted(bandwidth, reverse=True)
-        top_95_index = int(len(sorted_bandwidth) * (1 - 0.95))# 取top95%的点
+        top_95_index = int(len(sorted_bandwidth) * (1 - 0.95))  # 取top95%的点
         return round(sorted_bandwidth[top_95_index], 2)
 
     def calc_day_95():

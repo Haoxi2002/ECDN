@@ -1,9 +1,6 @@
-import json
-import os
 import random
 
 import pandas as pd
-from matplotlib import pyplot as plt
 
 from util.entity import Request
 from util.tool import URL_Generator, cal_cost
@@ -21,20 +18,6 @@ class Requester:  # 业务
         self.request_nums = pd.read_csv("./data/requester_simulation.csv")['log_count_day1']
 
     def send_request(self, request_handler, timestamp):
-        # # 读文件发送请求
-        # request_datas = open("./data/202501200000_000_0", "r", encoding="utf-8").readlines()
-        # for line in request_datas:
-        #     try:
-        #         data = json.loads(line)
-        #         request = Request(data['req_url'], data['ts'])
-        #         response = request_handler.handle_request(request)
-        #         if request.timestamp not in self.bw_list:
-        #             self.bw_list[request.timestamp] = 0
-        #         self.bw_list[request.timestamp] += response.content_size
-        #     except KeyError:
-        #         # print("This request hasn't url or ts or ...")
-        #         pass
-
         base_request_num = self.request_nums[timestamp % 86400]
         fluctuation = int(base_request_num * 0.2)  # 计算20%的波动
         request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动

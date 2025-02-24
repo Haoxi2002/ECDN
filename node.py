@@ -1,10 +1,7 @@
-import os
 from math import ceil
 
 from util.entity import Response, Request
 from util.tool import cdn_hash, cal_cost
-
-import matplotlib.pyplot as plt
 
 
 class Node:
