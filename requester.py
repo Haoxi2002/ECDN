@@ -50,7 +50,6 @@ class Requester:  # 业务
         else:
             # 如果余数不为0，取最后余数个元素，补足一个月
             self.bandwidths_month = self.bandwidths[-remainder:]
-
         if remainder == 0:
             # 如果余数是0，表示数据长度正好是 288 的整数倍，取最后一天的288个元素
             self.bandwidths_day = self.bandwidths_month[-288:]
