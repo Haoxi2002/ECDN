@@ -35,7 +35,8 @@ class Node:
         """当缓存超过最大容量时，移除最久未使用的项"""
         self.cache.popitem(last=False)  # 删除最久未使用的项（即最前面那个）
 
-    def generate_content_size(self):
+    @staticmethod
+    def generate_content_size():
         """生成符合t分布的content_size"""
         df = 2
         content_size_t = np.random.standard_t(df, size=1)[0]  # 使用 NumPy 生成 t 分布随机数
