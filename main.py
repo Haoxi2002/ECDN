@@ -12,27 +12,31 @@ from request_handler import RequestHandler
 from requester import Requester
 from util.tool import Hostname_Generator, URL_Generator
 
+setting = json.load(open('settings.json', 'r'))
+
 app = Flask(__name__)
 # 用于存储实时数据
 node_data = {
-    'bandwidths': [[] for _ in range(10)],
-    'costs': [[] for _ in range(10)]
+    'bandwidths': [[] for _ in range(setting['node_nums'])],
+    'costs': [[] for _ in range(setting['node_nums'])]
 }
 requester_data = {
     'bandwidths': [[] for _ in range(5)],
     'costs': [[] for _ in range(5)]
 }
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/data')
 def get_data():
     # 只返回最近8640个数据点（一个月）
     data_length = len(node_data['bandwidths'][0])
     start_idx = max(0, data_length - 8640)
-    
+
     return jsonify({
         'nodes': {
             'bandwidths': [data[start_idx:] for data in node_data['bandwidths']],
@@ -46,8 +50,9 @@ def get_data():
         'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 300, 300))
     })
 
+
 def main():
-    print("in main")
+
     setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
     cost_methods = ['A', 'B', 'C', 'D', 'E']
 
@@ -60,7 +65,8 @@ def main():
     # 初始化节点（随机生成）
     node_nums = setting['node_nums']
     hostname_generator = Hostname_Generator()
-    nodes = [Node(i, hostname_generator.generate(), setting['node_bandwidth'], cost_methods[i % 5]) for i in range(node_nums)]
+    nodes = [Node(i, hostname_generator.generate(), setting['node_bandwidth'], cost_methods[i % 5]) for i in
+             range(node_nums)]
 
     # 初始化哈希环
     hash_ring = HashRing(nodes)
@@ -69,7 +75,8 @@ def main():
     request_handler = RequestHandler(hash_ring)
 
     # 初始化业务
-    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in range(5)]
+    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in
+                  range(5)]
 
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
@@ -103,7 +110,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print("main")
     threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000}).start()
-    print("after thread")
     main()

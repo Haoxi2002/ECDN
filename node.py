@@ -1,4 +1,3 @@
-import os
 from math import ceil
 
 from util.entity import Response, Request
@@ -6,8 +5,6 @@ from util.tool import cdn_hash, cal_cost
 import time
 from collections import OrderedDict
 from scipy.stats import t
-
-import matplotlib.pyplot as plt
 
 
 class Node:
@@ -122,6 +119,7 @@ class Node:
             # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
             self.bandwidths_month = self.bandwidths[-8640:]
         else:
+
             # 如果余数不为0，取最后余数个元素，补足一个月
             self.bandwidths_month = self.bandwidths[-remainder:]
 
@@ -133,3 +131,4 @@ class Node:
             self.bandwidths_day = self.bandwidths_month[-remainder:]
 
         return cal_cost(self.bandwidths_month, self.bandwidths_day, self.cost_method)
+
