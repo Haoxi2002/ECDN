@@ -1,10 +1,11 @@
 from math import ceil
 
+import numpy as np
+
 from util.entity import Response, Request
 from util.tool import cdn_hash, cal_cost
 import time
 from collections import OrderedDict
-from scipy.stats import t
 
 
 class Node:
@@ -30,28 +31,17 @@ class Node:
             virtual_nodes[virtual_node_hash] = self
         return virtual_nodes
 
-    # def get_from_cache(self, path: str):
-    #     """从缓存中查找资源"""
-    #     return self.cache.get(path)
-    #
-    # def fetch_from_origin(self, path: str):
-    #     """模拟回源获取数据"""
-    #     # 模拟从源站获取的内容
-    #     content_size = 1  # 1MB
-    #     self.cache[path] = content_size  # 将获取的内容加入缓存
-    #     return content_size
-
     def _evict(self):
         """当缓存超过最大容量时，移除最久未使用的项"""
         self.cache.popitem(last=False)  # 删除最久未使用的项（即最前面那个）
 
     def generate_content_size(self):
         """生成符合t分布的content_size"""
-        df = 2  # 设置自由度
-        content_size_t = t.rvs(df, size=1)[0]  # 生成符合t分布的随机数
-        content_size = content_size_t + 1  # 调整为1MB为中心
+        df = 2
+        content_size_t = np.random.standard_t(df, size=1)[0]  # 使用 NumPy 生成 t 分布随机数
+        content_size = content_size_t + 1  # 调整为 1MB 为中心
         if content_size < 0:
-            content_size = 1  # 如果生成的大小小于0，设置为1MB
+            content_size = 1
         return content_size
 
     def fetch_from_origin(self, path: str):
