@@ -22,7 +22,7 @@ class Requester:  # 业务
         fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
         request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
         for j in range(request_num):
-            request = Request(self.url_generator.get_url(), timestamp)
+            request = Request(self.url_generator.get_url(timestamp), timestamp)
             response = request_handler.handle_request(request)
             self.current_bandwidth += response.content_size
 
