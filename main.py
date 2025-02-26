@@ -47,7 +47,8 @@ def get_data():
     })
 
 def main():
-    setting = json.load(open('settings.json', 'r'))
+    print("in main")
+    setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
     cost_methods = ['A', 'B', 'C', 'D', 'E']
 
     # # 初始化节点（文件读取）
@@ -102,5 +103,7 @@ def main():
 
 
 if __name__ == "__main__":
+    print("main")
     threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000}).start()
+    print("after thread")
     main()

@@ -10,39 +10,45 @@ def cdn_hash(content: str):
     return xxhash.xxh64(content).intdigest() % hash_max
 
 
-def cal_cost(bandwidth: list, cost_method: str):
-    def calc_month_95():
-        sorted_bandwidth = sorted(bandwidth, reverse=True)
-        top_95_index = int(len(sorted_bandwidth) * (1 - 0.95))# 取top95%的点
-        return round(sorted_bandwidth[top_95_index], 2)
+def cal_cost(bandwidth_month: list, bandwidth_day: list, cost_method: str):
+    def calc_month_95(): # 月95
+        # 从小到大排序带宽数据
+        sorted_bandwidth_month = sorted(bandwidth_month)
+        # 计算95%的索引，取最接近95%的点
+        top_95_index = round(len(sorted_bandwidth_month) * 0.95) - 1
+        # 返回该位置的值，四舍五入保留两位小数
+        return round(sorted_bandwidth_month[top_95_index], 2)
 
     def calc_day_95():
-        daily_bandwidth_95 = []
-        # 遍历每一天（假设一天有288个数据点）
-        for i in range(0, len(bandwidth), 288):
-            daily_data = bandwidth[i:i + 288]
-            daily_data.sort(reverse=True)  # 每天的带宽排序
-            day_95_index = int(len(daily_data) * (1 - 0.95))  # 取top95%的点
-            daily_bandwidth_95.append(daily_data[day_95_index])  # 记录该点的带宽
-        # 计算所有日95值的平均值
-        return round(sum(daily_bandwidth_95) / len(daily_bandwidth_95), 2)
+        # 按照升序排序
+        sorted_bandwidth_day = sorted(bandwidth_day)
+        # 取95%位置的带宽
+        day_95_index = round(len(sorted_bandwidth_day) * 0.95) - 1  # 取95%位置的点
+        # 返回该位置的值，四舍五入保留两位小数
+        return round(sorted_bandwidth_day[day_95_index], 2)
 
     def calc_peak_95():
-        daily_peak_95 = []  # 存储每一天的95%带宽值
-        # 遍历30天，每天的240到276晚高峰数据
-        for i in range(0, len(bandwidth), 288):
-            peak_bandwidth = bandwidth[i + 240:i + 276]  # 提取每天的240到276数据（晚上8点到晚上11点）
-            peak_bandwidth.sort(reverse=True)  # 对该天数据进行降序排序
-            peak_95_index = int(len(peak_bandwidth) * (1 - 0.95))  # 找到该天95%点的索引
-            daily_peak_95.append(round(peak_bandwidth[peak_95_index], 2))  # 添加到日均列表
-        # 计算所有天数的95%带宽值的平均值
-        return round(sum(daily_peak_95) / len(daily_peak_95), 2)
+        # 如果数据长度小于240，返回0（没有足够的晚高峰数据）
+        if len(bandwidth_day) <= 240:
+            return 0
+        # 从240到288之间的数据，晚高峰确认后为晚上8点到12点
+        peak_bandwidth_day = bandwidth_day[240:]
+        # 对选取的数据进行升序排序
+        peak_bandwidth_day.sort()
+        # 计算95%位置的带宽值
+        peak_95_index = round(len(peak_bandwidth_day) * 0.95) - 1
+        return round(peak_bandwidth_day[peak_95_index], 2)
 
-    def calc_flat_rate():
+    def calc_flat_rate(): # 买断
         return round(150, 2)
 
-    def calc_daily_peak_avg():
-        daily_peaks = [max(bandwidth[i:i + 288]) for i in range(0, len(bandwidth), 288)]
+    def calc_daily_peak_avg(): # 日峰值月平均
+        # 获取每日的最大值
+        daily_peaks = []
+        for i in range(0, len(bandwidth_month), 288):
+            # 取当前段的最大值，如果剩余的不足288个元素，只取这些剩余部分
+            daily_peaks.append(max(bandwidth_month[i:i + 288]))
+        # 计算并返回月平均值
         return round(sum(daily_peaks) / len(daily_peaks), 2)
 
     if cost_method == 'A':
