@@ -38,7 +38,7 @@ def cal_cost(bandwidth: list, cost_method: str):
         return round(sum(daily_peak_95) / len(daily_peak_95), 2)
 
     def calc_flat_rate():
-        return round(150, 2)
+        return round(1, 2)
 
     def calc_daily_peak_avg():
         daily_peaks = [max(bandwidth[i:i + 288]) for i in range(0, len(bandwidth), 288)]

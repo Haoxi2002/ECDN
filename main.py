@@ -24,6 +24,8 @@ requester_data = {
     'bandwidths': [[] for _ in range(5)],
     'costs': [[] for _ in range(5)]
 }
+total_cost_data = []  # 添加总成本数据数组
+total_bandwidth_data = []  # 添加总带宽数据数组
 
 
 @app.route('/')
@@ -46,7 +48,9 @@ def get_data():
             'bandwidths': [data[start_idx:] for data in requester_data['bandwidths']],
             'costs': [data[start_idx:] for data in requester_data['costs']]
         },
-        'start_timestamp': start_idx * 300,  # 起始时间戳
+        'total_cost': total_cost_data[start_idx:],  # 添加总成本数据
+        'total_bandwidth': total_bandwidth_data[start_idx:],  # 添加总带宽数据
+        'start_timestamp': start_idx * 300,
         'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 300, 300))
     })
 
@@ -63,8 +67,7 @@ def main():
     # 初始化节点（随机生成）
     node_nums = setting['node_nums']
     hostname_generator = Hostname_Generator()
-    nodes = [Node(i, hostname_generator.generate(), setting['node_bandwidth'], cost_methods[i % 5]) for i in
-             range(node_nums)]
+    nodes = [Node(i, hostname_generator.generate(), setting['node_bandwidth'], cost_methods[i % 5]) for i in range(node_nums)]
 
     # 初始化哈希环
     hash_ring = HashRing(nodes)
@@ -73,21 +76,27 @@ def main():
     request_handler = RequestHandler(hash_ring)
 
     # 初始化业务
-    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in
-                  range(5)]
+    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in range(5)]
 
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
         for requester in requesters:
             requester.send_request(request_handler, timestamp)
+        tot_cost = 0
+        tot_bandwidth = 0
         for i, node in enumerate(nodes):
             node.record()
             node_data['bandwidths'][i].append(node.bandwidths[-1])
             node_data['costs'][i].append(node.costs[-1])
+            tot_cost += node.costs[-1]
+            tot_bandwidth += node.bandwidths[-1]
         for i, requester in enumerate(requesters):
             requester.record()
             requester_data['bandwidths'][i].append(requester.bandwidths[-1])
-            requester_data['costs'][i].append(requester.costs[-1])
+            requester_data['costs'][i].append(-requester.costs[-1])
+            tot_cost -= requester.costs[-1]
+        total_cost_data.append(tot_cost)  # 记录总成本
+        total_bandwidth_data.append(tot_bandwidth)  # 记录总带宽
 
     print("Request Num:", request_handler.request_num)
     print("Fetch Num:", request_handler.fetch_from_origin_num)

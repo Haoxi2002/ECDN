@@ -19,7 +19,7 @@ class Requester:  # 业务
 
     def send_request(self, request_handler, timestamp):
         base_request_num = self.request_nums[timestamp % 86400]
-        fluctuation = int(base_request_num * 0.2)  # 计算20%的波动
+        fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
         request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
         for j in range(request_num):
             request = Request(self.url_generator.get_url(), timestamp)

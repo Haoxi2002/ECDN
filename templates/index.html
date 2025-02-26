@@ -7,16 +7,20 @@
         body {
             margin: 0;
             padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
         .chart {
-            width: 95vw;  /* 使用视窗宽度的95% */
-            height: 45vh;  /* 使用视窗高度的45% */
-            margin: 20px auto;  /* 上下间距20px，左右自动居中 */
+            width: 95vw;
+            height: calc(50vh - 50px);  /* 减去padding和标题的高度 */
+            margin: 10px auto;
         }
         h2 {
             text-align: center;
             color: #333;
-            margin: 10px 0;
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -56,6 +60,23 @@
                     const bandwidthSeries = [];
                     const costSeries = [];
                     
+                    // 添加总带宽曲线
+                    bandwidthSeries.push({
+                        name: 'Total Bandwidth',
+                        type: 'line',
+                        data: data.total_bandwidth,
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            type: 'solid'
+                        },
+                        symbol: 'none',
+                        selected: false,
+                        itemStyle: {
+                            color: '#ff0000'
+                        }
+                    });
+
                     // 添加节点数据
                     for (let i = 0; i < 10; i++) {
                         bandwidthSeries.push({
@@ -108,6 +129,23 @@
                         });
                     }
 
+                    // 添加总成本曲线
+                    costSeries.push({
+                        name: 'Total Cost',
+                        type: 'line',
+                        data: data.total_cost,
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,  // 更粗的线条
+                            type: 'solid'
+                        },
+                        symbol: 'none',
+                        selected: false,  // 默认隐藏
+                        itemStyle: {
+                            color: '#ff0000'  // 红色
+                        }
+                    });
+
                     const option = {
                         tooltip: {
                             trigger: 'axis',
@@ -124,9 +162,9 @@
                             }
                         },
                         legend: {
-                            data: [...Array(10).keys()].map(i => `Node ${i}`).concat(
-                                [...Array(5).keys()].map(i => `Requester ${i}`)
-                            ),
+                            data: ['Total Bandwidth']  // 总带宽
+                                .concat([...Array(10).keys()].map(i => `Node ${i}`))  // 节点
+                                .concat([...Array(5).keys()].map(i => `Requester ${i}`)),  // 业务
                             type: 'scroll',
                             orient: 'vertical',
                             right: '1%',  // 减小图例右边距
@@ -176,7 +214,14 @@
                     const costOption = {
                         ...option,
                         legend: {
-                            ...option.legend,
+                            data: ['Total Cost']  // 总成本
+                                .concat([...Array(10).keys()].map(i => `Node ${i}`))  // 节点
+                                .concat([...Array(5).keys()].map(i => `Requester ${i}`)),  // 业务
+                            type: 'scroll',
+                            orient: 'vertical',
+                            right: '1%',  // 减小图例右边距
+                            top: 20,
+                            bottom: 20,
                             selected: Object.keys(costSelected).length > 0 
                                 ? costSelected
                                 : Object.fromEntries(
