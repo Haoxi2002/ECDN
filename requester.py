@@ -34,6 +34,7 @@ class Requester:  # 业务
     def get_cost(self):
         return cal_cost(self.bandwidths, self.cost_method)
 
+
     # def get_cost(self):
     #     # 如果bandwidths长度不足8640，在前面补0
     #     if len(self.bandwidths) < 8640:

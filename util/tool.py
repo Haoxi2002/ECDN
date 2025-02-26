@@ -79,6 +79,7 @@ def cal_cost(bandwidth: list, cost_method: str):
         return calc_day_peak_month_avg()
     else:
         raise ValueError("Invalid cost method code")
+    
 
 
 class Hostname_Generator:

@@ -54,6 +54,7 @@ def get_data():
 def main():
 
     # setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
+
     setting = json.load(open('settings.json'), 'r')
     cost_methods = ['A', 'B', 'C', 'D', 'E']
 
