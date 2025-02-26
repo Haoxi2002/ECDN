@@ -57,16 +57,7 @@ def get_data():
 
 def main():
 
-    # setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
-
-    setting = json.load(open('settings.json'), 'r')
     cost_methods = ['A', 'B', 'C', 'D', 'E']
-
-    # # 初始化节点（文件读取）
-    # node_file = open("./data/服务器请求量.csv", 'r')
-    # df = pd.read_csv(node_file)
-    #
-    # nodes = [Node(hostname, eth_up_max / 1024 / 1024) for hostname, eth_up_max, _ in df.values]
 
     # 初始化节点（随机生成）
     node_nums = setting['node_nums']

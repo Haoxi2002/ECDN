@@ -89,8 +89,9 @@ class Node:
         """处理请求，先查缓存，缓存未命中则回源"""
         if self.current_bandwidth >= self.bandwidth:
             return Response(handle_flag=False)
-        if request.url in self.cache.keys():
-            response = Response(fetch_flag=False, content_size=self.cache.get(request.url), handle_flag=True)
+        content_size = self.get_from_cache(request.url)
+        if content_size:
+            response = Response(fetch_flag=False, content_size=content_size, handle_flag=True)
         else:
             response = Response(fetch_flag=True, content_size=self.fetch_from_origin(request.url), handle_flag=True)
         self.current_bandwidth += response.content_size
@@ -103,14 +104,3 @@ class Node:
 
     def get_cost(self):
         return cal_cost(self.bandwidths, self.cost_method)
-
-
-    # def get_cost(self):
-    #     # 如果bandwidths长度不足8640，在前面补0
-    #     if len(self.bandwidths) < 8640:
-    #         padding = [0] * (8640 - len(self.bandwidths))
-    #         return cal_cost(padding + self.bandwidths, self.cost_method)
-    #     else:
-    #         return cal_cost(self.bandwidths[-8640:], self.cost_method)
-
-
