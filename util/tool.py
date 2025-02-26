@@ -10,7 +10,6 @@ def cdn_hash(content: str):
 
 
 def cal_cost(bandwidth: list, cost_method: str):
-
     remainder_month = len(bandwidth) % 8640
     if remainder_month == 0:
     # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
