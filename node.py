@@ -18,8 +18,6 @@ class Node:
         self.cache = OrderedDict()  # 使用有序字典模拟缓存，键为资源路径，值为资源大小和时间戳
         self.current_bandwidth = 0
         self.bandwidths = []
-        self.bandwidths_month = []
-        self.bandwidths_day = []
         self.costs = []
         self.capacity = 10  # 最大缓存容量
 
@@ -104,6 +102,9 @@ class Node:
         self.current_bandwidth = 0
         self.costs.append(self.get_cost())
 
+    def get_cost(self):
+        return cal_cost(self.bandwidths, self.cost_method)
+
     # def get_cost(self):
     #     # 如果bandwidths长度不足8640，在前面补0
     #     if len(self.bandwidths) < 8640:
@@ -112,21 +113,4 @@ class Node:
     #     else:
     #         return cal_cost(self.bandwidths[-8640:], self.cost_method)
 
-    def get_cost(self):
-        # 计算 self.bandwidths 的长度对 8640 的余数
-        remainder = len(self.bandwidths) % 8640
-        if remainder == 0:
-            # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
-            self.bandwidths_month = self.bandwidths[-8640:]
-        else:
-            # 如果余数不为0，取最后余数个元素，补足一个月
-            self.bandwidths_month = self.bandwidths[-remainder:]
-        if remainder == 0:
-            # 如果余数是0，表示数据长度正好是 288 的整数倍，取最后一天的288个元素
-            self.bandwidths_day = self.bandwidths_month[-288:]
-        else:
-            # 如果余数不为0，取最后余数个元素，补足一天
-            self.bandwidths_day = self.bandwidths_month[-remainder:]
-
-        return cal_cost(self.bandwidths_month, self.bandwidths_day, self.cost_method)
 

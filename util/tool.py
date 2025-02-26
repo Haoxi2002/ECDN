@@ -9,7 +9,24 @@ def cdn_hash(content: str):
     return xxhash.xxh64(content).intdigest() % hash_max
 
 
-def cal_cost(bandwidth_month: list, bandwidth_day: list, cost_method: str):
+def cal_cost(bandwidth: list, cost_method: str):
+
+    remainder_month = len(bandwidth) % 8640
+    if remainder_month == 0:
+    # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
+        bandwidth_month = bandwidth[-8640:]
+    else:
+        # 如果余数不为0，取最后余数个元素，补足一个月
+        bandwidth_month = bandwidth[-remainder_month:]
+
+    remainder_day = len(bandwidth_month) % 288
+    if remainder_day == 0:
+    # 如果余数是0，表示数据长度正好是 288 的整数倍，取最后一天的288个元素
+        bandwidth_day = bandwidth_month[-288:]
+    else:
+    #  如果余数不为0，取最后余数个元素，补足一天
+        bandwidth_day = bandwidth_month[-remainder_day:]
+
     def calc_month_95(): # 月95
         # 从小到大排序带宽数据
         sorted_bandwidth_month = sorted(bandwidth_month)
@@ -26,7 +43,7 @@ def cal_cost(bandwidth_month: list, bandwidth_day: list, cost_method: str):
         # 返回该位置的值，四舍五入保留两位小数
         return round(sorted_bandwidth_day[day_95_index], 2)
 
-    def calc_peak_95():
+    def calc_day_peak_95():
         # 如果数据长度小于240，返回0（没有足够的晚高峰数据）
         if len(bandwidth_day) <= 240:
             return 0
@@ -39,9 +56,9 @@ def cal_cost(bandwidth_month: list, bandwidth_day: list, cost_method: str):
         return round(peak_bandwidth_day[peak_95_index], 2)
 
     def calc_flat_rate(): # 买断
-        return round(150, 2)
+        return round(1, 2)
 
-    def calc_daily_peak_avg(): # 日峰值月平均
+    def calc_day_peak_month_avg(): # 日峰值月平均
         # 获取每日的最大值
         daily_peaks = []
         for i in range(0, len(bandwidth_month), 288):
@@ -55,11 +72,11 @@ def cal_cost(bandwidth_month: list, bandwidth_day: list, cost_method: str):
     elif cost_method == 'B':
         return calc_day_95()
     elif cost_method == 'C':
-        return calc_peak_95()
+        return calc_day_peak_95()
     elif cost_method == 'D':
         return calc_flat_rate()
     elif cost_method == 'E':
-        return calc_daily_peak_avg()
+        return calc_day_peak_month_avg()
     else:
         raise ValueError("Invalid cost method code")
 
