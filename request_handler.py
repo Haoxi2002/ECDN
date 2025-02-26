@@ -6,32 +6,20 @@ from util.tool import cdn_hash
 
 
 class RequestHandler:
-    def __init__(self, hash_ring: HashRing, max_iterations: int = 5):
+    def __init__(self, hash_ring: HashRing):
         self.hash_ring = hash_ring
-        self.max_iterations = max_iterations
         self.fetch_from_origin_num = 0  # 回源量
         self.request_num = 0  # 请求量
 
     def handle_request(self, request: Request):
         """处理用户请求，分发到合适的节点"""
         fid = hashlib.md5(f"{request.url}".encode("utf-8")).hexdigest()
-        fid_hash = cdn_hash(fid)
 
-        node = self.find_node(fid_hash)
-        response = Response()
-        if node:
+        for i in range(len(self.hash_ring.ring)):
+            node = self.hash_ring.get_node(cdn_hash(f"{fid}{'' if i == 0 else i}"))
             response = node.handle_request(request)
-        else:
-            response.fetch_flag = True
-        self.request_num += 1
-        self.fetch_from_origin_num += response.fetch_flag
-        return response
-
-    def find_node(self, fid_hash: int):
-        """根据哈希值找到节点，支持负载转移"""
-        for i in range(self.max_iterations):
-            node = self.hash_ring.get_node(fid_hash)
-            if node:
-                return node
-            fid_hash = cdn_hash(f"{fid_hash}{i}")
-        return None
+            if response.handle_flag:
+                self.request_num += 1
+                self.fetch_from_origin_num += response.fetch_flag
+                return response
+        return Response(handle_flag=False)

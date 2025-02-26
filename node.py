@@ -38,13 +38,12 @@ class Node:
 
     def handle_request(self, request: Request):
         """处理请求，先查缓存，缓存未命中则回源"""
-        content_size = self.get_from_cache(request.url)
-        response = Response()
-        if not content_size:
-            response.fetch_flag = True
-            response.content_size = self.fetch_from_origin(request.url)
+        if self.current_bandwidth >= self.bandwidth:
+            return Response(handle_flag=False)
+        if request.url in self.cache.keys():
+            response = Response(fetch_flag=False, content_size=self.cache.get(request.url), handle_flag=True)
         else:
-            response.content_size = content_size
+            response = Response(fetch_flag=True, content_size=self.fetch_from_origin(request.url), handle_flag=True)
         self.current_bandwidth += response.content_size
         return response
 
