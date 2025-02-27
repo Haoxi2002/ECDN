@@ -15,12 +15,12 @@ class Node:
         self.bandwidth = bandwidth
         self.cost_method = cost_method
         self.virtual_nodes = self.generate_virtual_nodes()
-        # self.cache = {}  # 模拟缓存，键为资源路径，值为资源大小
         self.cache = OrderedDict()  # 使用有序字典模拟缓存，键为资源路径，值为资源大小和时间戳
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
         self.capacity = 10  # 最大缓存容量
+        self.rng = np.random.default_rng()
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}
@@ -35,12 +35,9 @@ class Node:
         """当缓存超过最大容量时，移除最久未使用的项"""
         self.cache.popitem(last=False)  # 删除最久未使用的项（即最前面那个）
 
-    @staticmethod
-    def generate_content_size():
+    def generate_content_size(self):
         """生成符合t分布的content_size"""
-        df = 2
-        content_size_t = np.random.standard_t(df, size=1)[0]  # 使用 NumPy 生成 t 分布随机数
-        content_size = content_size_t + 1  # 调整为 1MB 为中心
+        content_size = self.rng.standard_t(2) + 1  # 直接生成标量
         if content_size < 0:
             content_size = 1
         return content_size
