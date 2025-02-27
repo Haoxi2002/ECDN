@@ -73,7 +73,7 @@ class Node:
             return content_size
         return None
 
-    def handle_request(self, request: Request):
+    def handle_request_node(self, request: Request):
         """处理请求，先查缓存，缓存未命中则回源"""
         if self.current_bandwidth >= self.bandwidth:
             return Response(handle_flag=False)
