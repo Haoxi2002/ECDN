@@ -19,7 +19,7 @@ class Node:
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
-        self.capacity = 10  # 最大缓存容量
+        self.capacity = 5000  # 最大缓存容量
         self.rng = np.random.default_rng()
 
     def generate_virtual_nodes(self):
