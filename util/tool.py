@@ -1,6 +1,7 @@
 import random
 import string
 
+import numpy as np
 import xxhash
 
 
@@ -28,11 +29,11 @@ def cal_cost(bandwidth: list, cost_method: str):
 
     def calc_month_95():  # 月95
         # 从小到大排序带宽数据
-        sorted_bandwidth_month = sorted(bandwidth_month)
+        sorted_bandwidth_month = np.sort(bandwidth_month)
         # 计算95%的索引，取最接近95%的点
-        top_95_index = round(len(sorted_bandwidth_month) * 0.95) - 1
+        top_95_index = int(np.ceil(len(sorted_bandwidth_month) * 0.95)) - 1
         # 返回该位置的值，四舍五入保留两位小数
-        return round(sorted_bandwidth_month[top_95_index], 2)
+        return round(float(sorted_bandwidth_month[top_95_index]), 2)
 
     def calc_day_95():
         # 按照升序排序
@@ -66,29 +67,28 @@ def cal_cost(bandwidth: list, cost_method: str):
         # 计算并返回月平均值
         return round(sum(daily_peaks) / len(daily_peaks), 2)
 
-    if cost_method == 'A':
-        return calc_month_95()
-    elif cost_method == 'B':
-        return calc_day_95()
-    elif cost_method == 'C':
-        return calc_day_peak_95()
-    elif cost_method == 'D':
-        return calc_flat_rate()
-    elif cost_method == 'E':
-        return calc_day_peak_month_avg()
-    else:
-        raise ValueError("Invalid cost method code")
+    strategies = {
+        'A': calc_month_95,
+        'B': calc_day_95,
+        'C': calc_day_peak_95,
+        'D': calc_flat_rate,
+        'E': calc_day_peak_month_avg
+    }
+    if cost_method not in strategies:
+        raise ValueError(...)
+    return strategies[cost_method]()
 
 
 class Hostname_Generator:
     def __init__(self):
-        self.l = []
+        self.generated = set()
 
     def generate(self):
-        new_hostname = f"bkj-{''.join(random.choices(string.hexdigits, k=8)).upper()}"
-        while new_hostname in self.l:
+        while True:
             new_hostname = f"bkj-{''.join(random.choices(string.hexdigits, k=8)).upper()}"
-        return new_hostname
+            if new_hostname not in self.generated:
+                self.generated.add(new_hostname)
+                return new_hostname
 
 
 class URL_Generator:
@@ -110,14 +110,13 @@ class URL_Generator:
 
     def get_url(self, timestamp):
         if timestamp - self.last_modify > self.modify_period:
-            drop_url = self.l[random.randint(0, self.url_num - 1)]
+            drop_index = random.randint(0, self.url_num - 1)
             new_url = f"http://{self.app_id}.com/{''.join(random.choices(string.ascii_letters + string.digits + '_', k=30)).lower()}"
             while new_url in self.seen_urls:
                 new_url = f"http://{self.app_id}.com/{''.join(random.choices(string.ascii_letters + string.digits + '_', k=30)).lower()}"
-            self.seen_urls.remove(drop_url)
+            self.seen_urls.remove(self.l[drop_index])
             self.seen_urls.add(new_url)
-            self.l.remove(drop_url)
-            self.l.append(new_url)
+            self.l[drop_index] = new_url
             self.last_modify = timestamp
 
         return self.l[random.randint(0, self.url_num - 1)]
