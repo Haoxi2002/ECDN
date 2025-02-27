@@ -112,5 +112,7 @@ def main():
 
 
 if __name__ == "__main__":
-    threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000}).start()
+    flask_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
+    flask_thread.daemon = True
+    flask_thread.start()
     main()
