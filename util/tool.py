@@ -56,7 +56,7 @@ def cal_cost(bandwidth: list, cost_method: str):
         return round(peak_bandwidth_day[peak_95_index], 2)
 
     def calc_flat_rate():  # 买断
-        return round(1, 2)
+        return round(200, 2)
 
     def calc_day_peak_month_avg():  # 日峰值月平均
         # 获取每日的最大值

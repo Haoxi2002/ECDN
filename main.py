@@ -71,7 +71,7 @@ def main():
     request_handler = RequestHandler(hash_ring)
 
     # 初始化业务
-    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in range(5)]
+    requesters = [Requester(i, f"app{i}", cost_methods[i], URL_Generator(f"app{i}", setting['url_num'])) for i in [0, 1, 4]]
 
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):

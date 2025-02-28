@@ -75,7 +75,9 @@ class Node:
 
     def handle_request_node(self, request: Request):
         """处理请求，先查缓存，缓存未命中则回源"""
-        if self.current_bandwidth >= self.bandwidth:
+        if self.current_bandwidth >= self.bandwidth:  # 带宽超限，可设置为最大带宽的百分比
+            return Response(handle_flag=False)
+        if self.cost_method == "C" and request.timestamp % 86400 < 72000:  # 晚高峰节点不承担非晚高峰请求
             return Response(handle_flag=False)
         content_size = self.get_from_cache(request.url)
         if content_size:
