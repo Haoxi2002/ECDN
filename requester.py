@@ -15,7 +15,8 @@ class Requester:  # 业务
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
-        self.request_nums = pd.read_csv("./data/requester_simulation.csv")['log_count_day1']
+        # self.request_nums = pd.read_csv(".\data\requester_simulation.csv")['log_count_day1']
+        self.request_nums = pd.read_csv("F:\\ECDN\\ECDN2.24\\ECDN\\data\\requester_simulation.csv")['log_count_day1']
 
     def send_request(self, request_handler, timestamp):
         base_request_num = self.request_nums[timestamp % 86400]
@@ -26,10 +27,10 @@ class Requester:  # 业务
             response = request_handler.handle_request(request)
             self.current_bandwidth += response.content_size
 
-    def record(self):
+    def record(self, unit_price: list):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost())
+        self.costs.append(self.get_cost(unit_price))
 
-    def get_cost(self):
-        return cal_cost(self.bandwidths, self.cost_method)
+    def get_cost(self, unit_price: list):
+        return cal_cost(self.bandwidths, self.cost_method, unit_price)

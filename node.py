@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 
 class Node:
-    def __init__(self, id: int, hostname: str, bandwidth: float, cost_method: str):
+    def __init__(self, id: int, hostname: str, bandwidth: float, cost_method: str, content_size: float):
         self.id = id
         self.hostname = hostname
         self.bandwidth = bandwidth
@@ -21,6 +21,7 @@ class Node:
         self.costs = []
         self.capacity = 5000  # 最大缓存容量
         self.rng = np.random.default_rng()
+        self.content_size = content_size
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}
@@ -35,12 +36,15 @@ class Node:
         """当缓存超过最大容量时，移除最久未使用的项"""
         self.cache.popitem(last=False)  # 删除最久未使用的项（即最前面那个）
 
+    # def generate_content_size(self):
+    #     """生成符合t分布的content_size"""
+    #     content_size = self.rng.standard_t(2) + 1  # 直接生成标量
+    #     if content_size < 0:
+    #         content_size = 1
+    #     return content_size
+
     def generate_content_size(self):
-        """生成符合t分布的content_size"""
-        content_size = self.rng.standard_t(2) + 1  # 直接生成标量
-        if content_size < 0:
-            content_size = 1
-        return content_size
+        return self.content_size
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""
@@ -87,10 +91,10 @@ class Node:
         self.current_bandwidth += response.content_size
         return response
 
-    def record(self):
+    def record(self, unit_price: list):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost())
+        self.costs.append(self.get_cost(unit_price))
 
-    def get_cost(self):
-        return cal_cost(self.bandwidths, self.cost_method)
+    def get_cost(self, unit_price: list):
+        return cal_cost(self.bandwidths, self.cost_method, unit_price)
