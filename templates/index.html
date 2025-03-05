@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>节点和请求者监控</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -68,7 +68,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" onclick="submitPricingData()">确认计费信息</button>
+                    <button type="button" class="btn btn-primary" onclick="submitPricingData()" data-bs-dismiss="modal">确认计费信息</button>
                 </div>
             </div>
         </div>
@@ -94,7 +94,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" onclick="submitBandwidthData()">确认带宽数据</button>
+                    <button type="button" class="btn btn-primary" onclick="submitBandwidthData()" data-bs-dismiss="modal">确认带宽数据</button>
                 </div>
             </div>
         </div>
@@ -125,7 +125,6 @@
             updateCharts();
         }
 
-        // 更新图表数据
         function updateCharts() {
             fetch('/data')
                 .then(response => response.json())
@@ -220,7 +219,7 @@
                                 .concat([...Array(5).keys()].map(i => `Requester ${i}`)),
                             type: 'scroll',
                             orient: 'vertical',
-                            right: '1%',
+                            right: '1%',  // 右侧显示
                             top: 20,
                             bottom: 20,
                             selected: Object.keys(bandwidthSelected).length > 0 ? bandwidthSelected : Object.fromEntries([...Array(10).keys()].map(i => [`Node ${i}`, false]).concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))),
@@ -244,12 +243,148 @@
                         animation: false
                     };
 
-                    const costOption = { ...option, legend: { data: ['Total Cost'].concat([...Array(10).keys()].map(i => `Node ${i}`)).concat([...Array(5).keys()].map(i => `Requester ${i}`)) }, yAxis: { type: 'value', name: '成本', splitLine: { show: true, lineStyle: { type: 'dashed' } } }, series: costSeries };
-
+                    const costOption = {
+                        ...option,
+                        legend: {
+                            data: ['Total Cost'].concat([...Array(10).keys()].map(i => `Node ${i}`)).concat([...Array(5).keys()].map(i => `Requester ${i}`)),
+                            orient: 'vertical',
+                            right: '1%',  // 右侧显示
+                            selected: Object.keys(costSelected).length > 0 ? costSelected : Object.fromEntries([...Array(10).keys()].map(i => [`Node ${i}`, false]).concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))),
+                        },
+                        yAxis: { type: 'value', name: '成本', splitLine: { show: true, lineStyle: { type: 'dashed' } } },
+                        series: costSeries
+                    }
+                    // 更新图表
                     bandwidthChart.setOption(option);
                     costChart.setOption(costOption);
                 });
         }
+
+
+        {#// 更新图表数据#}
+        {#function updateCharts() {#}
+        {#    fetch('/data')#}
+        {#        .then(response => response.json())#}
+        {#        .then(data => {#}
+        {#            const bandwidthSeries = [];#}
+        {#            const costSeries = [];#}
+        {##}
+        {#            // 添加总带宽曲线#}
+        {#            bandwidthSeries.push({#}
+        {#                name: 'Total Bandwidth',#}
+        {#                type: 'line',#}
+        {#                data: data.total_bandwidth,#}
+        {#                smooth: true,#}
+        {#                lineStyle: { width: 3, type: 'solid' },#}
+        {#                symbol: 'none',#}
+        {#                itemStyle: { color: '#ff0000' }#}
+        {#            });#}
+        {##}
+        {#            // 添加节点数据#}
+        {#            for (let i = 0; i < 10; i++) {#}
+        {#                bandwidthSeries.push({#}
+        {#                    name: `Node ${i}`,#}
+        {#                    type: 'line',#}
+        {#                    data: data.nodes.bandwidths[i],#}
+        {#                    smooth: true,#}
+        {#                    lineStyle: { width: 2 },#}
+        {#                    symbol: 'none',#}
+        {#                    selected: false  // 默认隐藏#}
+        {#                });#}
+        {#                costSeries.push({#}
+        {#                    name: `Node ${i}`,#}
+        {#                    type: 'line',#}
+        {#                    data: data.nodes.costs[i],#}
+        {#                    smooth: true,#}
+        {#                    lineStyle: { width: 2 },#}
+        {#                    symbol: 'none',#}
+        {#                    selected: false  // 默认隐藏#}
+        {#                });#}
+        {#            }#}
+        {##}
+        {#            // 添加请求者数据#}
+        {#            for (let i = 0; i < 5; i++) {#}
+        {#                bandwidthSeries.push({#}
+        {#                    name: `Requester ${i}`,#}
+        {#                    type: 'line',#}
+        {#                    data: data.requesters.bandwidths[i],#}
+        {#                    smooth: true,#}
+        {#                    lineStyle: { width: 2 },#}
+        {#                    symbol: 'none',#}
+        {#                    selected: false  // 默认隐藏#}
+        {#                });#}
+        {#                costSeries.push({#}
+        {#                    name: `Requester ${i}`,#}
+        {#                    type: 'line',#}
+        {#                    data: data.requesters.costs[i],#}
+        {#                    smooth: true,#}
+        {#                    lineStyle: { width: 2 },#}
+        {#                    symbol: 'none',#}
+        {#                    selected: false  // 默认隐藏#}
+        {#                });#}
+        {#            }#}
+        {##}
+        {#            // 添加总成本曲线#}
+        {#            costSeries.push({#}
+        {#                name: 'Total Cost',#}
+        {#                type: 'line',#}
+        {#                data: data.total_cost,#}
+        {#                smooth: true,#}
+        {#                lineStyle: { width: 3, type: 'solid' },#}
+        {#                symbol: 'none',#}
+        {#                itemStyle: { color: '#ff0000' }#}
+        {#            });#}
+        {##}
+        {#            const option = {#}
+        {#                tooltip: {#}
+        {#                    trigger: 'axis',#}
+        {#                    formatter: function(params) {#}
+        {#                        const timestamp = data.start_timestamp + params[0].axisValue * 300;  // 实际时间戳#}
+        {#                        const totalDays = Math.floor(timestamp / 86400);  // 总天数#}
+        {#                        const totalHours = Math.floor((timestamp % 86400) / 3600);  // 当天小时数#}
+        {#                        const totalMinutes = Math.floor((timestamp % 3600) / 60);  // 当前小时分钟数#}
+        {#                        let result = `第${totalDays}天 ${totalHours}时${totalMinutes}分<br/>`;#}
+        {#                        params.forEach(param => {#}
+        {#                            result += `${param.seriesName}: ${param.value.toFixed(2)}<br/>`;#}
+        {#                        });#}
+        {#                        return result;#}
+        {#                    }#}
+        {#                },#}
+        {#                legend: {#}
+        {#                    data: ['Total Bandwidth']#}
+        {#                        .concat([...Array(10).keys()].map(i => `Node ${i}`))#}
+        {#                        .concat([...Array(5).keys()].map(i => `Requester ${i}`)),#}
+        {#                    type: 'scroll',#}
+        {#                    orient: 'vertical',#}
+        {#                    right: '1%',#}
+        {#                    top: 20,#}
+        {#                    bottom: 20,#}
+        {#                    selected: Object.keys(bandwidthSelected).length > 0 ? bandwidthSelected : Object.fromEntries([...Array(10).keys()].map(i => [`Node ${i}`, false]).concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))),#}
+        {#                },#}
+        {#                grid: { left: '3%', right: '10%', bottom: '5%', top: '15%', containLabel: true },#}
+        {#                xAxis: {#}
+        {#                    type: 'category',#}
+        {#                    data: [...Array(data.timestamps.length).keys()],#}
+        {#                    name: '时间',#}
+        {#                    axisLabel: {#}
+        {#                        formatter: function(value) {#}
+        {#                            const timestamp = data.start_timestamp + value * 300;#}
+        {#                            const days = Math.floor(timestamp / 86400);#}
+        {#                            return `${days}d`;#}
+        {#                        },#}
+        {#                        interval: 288  // 每天显示一个刻度#}
+        {#                    }#}
+        {#                },#}
+        {#                yAxis: { type: 'value', name: '带宽 (MB/s)', splitLine: { show: true, lineStyle: { type: 'dashed' } } },#}
+        {#                series: bandwidthSeries,#}
+        {#                animation: false#}
+        {#            };#}
+        {##}
+        {#            const costOption = { ...option, legend: { data: ['Total Cost'].concat([...Array(10).keys()].map(i => `Node ${i}`)).concat([...Array(5).keys()].map(i => `Requester ${i}`)) }, yAxis: { type: 'value', name: '成本', splitLine: { show: true, lineStyle: { type: 'dashed' } } }, series: costSeries };#}
+        {##}
+        {#            bandwidthChart.setOption(option);#}
+        {#            costChart.setOption(costOption);#}
+        {#        });#{#}
 
         // 提交计费数据
         function submitPricingData() {
@@ -269,8 +404,14 @@
             pricingData = { unit_price: [monthlyPrice, dailyPrice, peakPrice, buyoutPrice, avgDailyPrice] };
 
             // 关闭计费信息模态框，显示带宽数据输入框
-            const pricingModal = new bootstrap.Modal(document.getElementById('pricingModal'));
-            pricingModal.hide();
+            // 获取模态框对象
+            const pricingModalElement = document.getElementById('pricingModal');
+            const pricingModal = new bootstrap.Modal(pricingModalElement);
+
+            // 检查模态框对象
+            console.log(pricingModalElement); // 输出检查是否正确
+
+            pricingModal.hide(); // 确保隐藏模态框
 
             const bandwidthModal = new bootstrap.Modal(document.getElementById('bandwidthModal'));
             bandwidthModal.show();
@@ -282,8 +423,8 @@
             const bandwidthTotal = parseFloat(document.getElementById('bandwidth-total').value);
             const requestsTotal = parseInt(document.getElementById('requests-total').value);
 
-            if (isNaN(bandwidthTotal) || isNaN(requestsTotal) || requestsTotal <= 0) {
-                alert("带宽总量必须为数字，且请求总量必须为正整数");
+            if (isNaN(bandwidthTotal) || isNaN(requestsTotal) || requestsTotal <= 0 || bandwidthTotal <= 0) {
+                alert("带宽总量必须为正数，且请求总量必须为正整数");
                 return;
             }
 
@@ -319,7 +460,6 @@
             const regex = /^\d+(\.\d{1,2})?$/;
             return regex.test(value);
         }
-
 
         window.addEventListener('load', function() {
             initCharts();
