@@ -247,6 +247,7 @@
                         ...option,
                         legend: {
                             data: ['Total Cost'].concat([...Array(10).keys()].map(i => `Node ${i}`)).concat([...Array(5).keys()].map(i => `Requester ${i}`)),
+                            type: 'scroll',
                             orient: 'vertical',
                             right: '1%',  // 右侧显示
                             selected: Object.keys(costSelected).length > 0 ? costSelected : Object.fromEntries([...Array(10).keys()].map(i => [`Node ${i}`, false]).concat([...Array(5).keys()].map(i => [`Requester ${i}`, false]))),

@@ -14,8 +14,8 @@ from request_handler import RequestHandler
 from requester import Requester
 from util.tool import Hostname_Generator, URL_Generator
 
-# setting = json.load(open('settings.json', 'r'))
-setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
+setting = json.load(open('settings.json', 'r'))
+# setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
 
 app = Flask(__name__)
 # 用于存储实时数据
@@ -24,8 +24,8 @@ node_data = {
     'costs': [[] for _ in range(setting['node_nums'])]
 }
 requester_data = {
-    'bandwidths': [[] for _ in range(5)],
-    'costs': [[] for _ in range(5)]
+    'bandwidths': [[] for _ in range(setting['requester_nums'])],
+    'costs': [[] for _ in range(setting['requester_nums'])]
 }
 total_cost_data = []  # 添加总成本数据数组
 total_bandwidth_data = []  # 添加总带宽数据数组
@@ -138,31 +138,31 @@ def main():
     print("Fetch Num:", request_handler.fetch_from_origin_num)
     print("Fetch Ratio:", request_handler.fetch_from_origin_num / request_handler.request_num * 100)
 
-    # if not os.path.exists("./results"):
-    #     os.mkdir("./results")
-    # if not os.path.exists("./results/csv"):
-    #     os.mkdir("./results/csv")
-    #
-    # for node in nodes:
-    #     df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
-    #     df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
-    #
-    # for requester in requesters:
-    #     df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
-    #     df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
-
-    if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results"):
-        os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results")
-    if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv"):
-        os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv")
+    if not os.path.exists("./results"):
+        os.mkdir("./results")
+    if not os.path.exists("./results/csv"):
+        os.mkdir("./results/csv")
 
     for node in nodes:
         df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
-        df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\node_{node.id}.csv", index=False)
+        df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
 
     for requester in requesters:
         df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
-        df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\{requester.app_id}.csv", index=False)
+        df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
+
+    # if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results"):
+    #     os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results")
+    # if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv"):
+    #     os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv")
+    #
+    # for node in nodes:
+    #     df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
+    #     df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\node_{node.id}.csv", index=False)
+    #
+    # for requester in requesters:
+    #     df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
+    #     df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\{requester.app_id}.csv", index=False)
 
 
 

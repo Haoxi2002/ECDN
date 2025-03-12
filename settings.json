@@ -1,5 +1,6 @@
 {
   "node_nums": 10,
   "node_bandwidth": 1024,
-  "url_num": 10000
+  "url_num": 10000,
+  "requester_nums": 5
 }
