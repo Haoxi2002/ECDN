@@ -22,6 +22,7 @@ class Node:
         self.capacity = 5000  # 最大缓存容量
         self.rng = np.random.default_rng()
         self.content_size = content_size
+        self.type = None  # **新增：用于存储节点分类**
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}

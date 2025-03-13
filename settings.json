@@ -1,6 +1,13 @@
 {
-  "node_nums": 10,
-  "node_bandwidth": 1024,
+  "node_nums_total": 10,
+  "node_A": {
+        "node_num": 5,
+        "node_bandwidth": 1024
+    },
+    "node_B": {
+        "node_num": 5,
+        "node_bandwidth": 2048
+    },
   "url_num": 10000,
   "requester_nums": 5
 }
