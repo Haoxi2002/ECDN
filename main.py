@@ -2,7 +2,6 @@ import datetime
 
 import json
 import os.path
-import random
 
 import tqdm
 
@@ -12,7 +11,7 @@ from node import Node
 from hash_ring import HashRing
 from request_handler import RequestHandler
 from business import Business
-from util.tool import Hostname_Generator, URL_Generator
+from util.tool import Hostname_Generator
 
 
 def main():
