@@ -16,8 +16,7 @@ from request_handler import RequestHandler
 from requester import Requester
 from util.tool import Hostname_Generator, URL_Generator
 
-# setting = json.load(open('settings.json', 'r'))
-setting = json.load(open('F:\\ECDN\\ECDN2.24\\ECDN\\settings.json', 'r'))
+setting = json.load(open('settings.json', 'r'))
 
 app = Flask(__name__)
 # 用于存储实时数据
@@ -37,7 +36,6 @@ node_data = {
         'costs': [[] for _ in range(setting["node_B"]["node_num"])]
     }
 }
-
 
 requester_data = {
     'bandwidths': [[] for _ in range(setting['requester_nums'])],
@@ -87,6 +85,7 @@ def get_data():
         'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 300, 300))
     })
 
+
 @app.route('/update_params', methods=['POST'])
 def update_params():
     global unit_price, url_num, bandwidth_num
@@ -105,8 +104,8 @@ def update_params():
     else:
         return jsonify({"status": "error", "message": "Missing parameters"})
 
-def main():
 
+def main():
     global unit_price, url_num, bandwidth_num
 
     # 等待直到参数被接收后才能开始模拟
@@ -215,39 +214,25 @@ def main():
     print("Fetch Num:", request_handler.fetch_from_origin_num)
     print("Fetch Ratio:", request_handler.fetch_from_origin_num / request_handler.request_num * 100)
 
-    # if not os.path.exists("./results"):
-    #     os.mkdir("./results")
-    # if not os.path.exists("./results/csv"):
-    #     os.mkdir("./results/csv")
-    #
-    # for node in nodes:
-    #     df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
-    #     df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
-    #
-    # for requester in requesters:
-    #     df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
-    #     df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
-
-    if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results"):
-        os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results")
-    if not os.path.exists("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv"):
-        os.mkdir("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv")
+    if not os.path.exists("./results"):
+        os.mkdir("./results")
+    if not os.path.exists("./results/csv"):
+        os.mkdir("./results/csv")
 
     for node in nodes:
         df = pd.DataFrame({'bandwidth': node.bandwidths, 'cost': node.costs})
-        df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\node_{node.id}.csv", index=False)
+        df.to_csv(f"./results/csv/node_{node.id}.csv", index=False)
 
     for requester in requesters:
         df = pd.DataFrame({'bandwidth': requester.bandwidths, 'cost': requester.costs})
-        df.to_csv(f"F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\{requester.app_id}.csv", index=False)
+        df.to_csv(f"./results/csv/{requester.app_id}.csv", index=False)
 
-    # **新增：保存总成本数据**
     df_total_cost = pd.DataFrame({'total_cost': total_cost_data})
-    df_total_cost.to_csv("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\total_cost.csv", index=False)
+    df_total_cost.to_csv("./results/csv/total_cost.csv", index=False)
 
-    # **新增：保存总带宽数据**
     df_total_bandwidth = pd.DataFrame({'total_bandwidth': total_bandwidth_data})
-    df_total_bandwidth.to_csv("F:\\ECDN\\ECDN2.24\\ECDN\\results\\csv\\total_bandwidth.csv", index=False)
+    df_total_bandwidth.to_csv("./results/csv/total_bandwidth.csv", index=False)
+
 
 if __name__ == "__main__":
     flask_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
