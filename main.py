@@ -47,10 +47,9 @@ def main():
             wave_file=business['wave_file']
         ))
 
+    # 业务发送请求
     total_costs = []
     total_bandwidths = []
-
-    # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
         for business in businesses:
             business.send_request(request_handler, timestamp)
@@ -66,6 +65,7 @@ def main():
         total_costs.append(tot_cost)
         total_bandwidths.append(tot_bandwidth)
 
+    # 输出并保存结果
     print("Request Num:", request_handler.request_num)
     print("Fetch Num:", request_handler.fetch_from_origin_num)
     print("Fetch Ratio:", request_handler.fetch_from_origin_num / request_handler.request_num * 100)
