@@ -9,20 +9,18 @@ from collections import OrderedDict
 
 
 class Node:
-    def __init__(self, id: int, hostname: str, bandwidth: float, cost_method: str, content_size: float):
-        self.id = id
+    def __init__(self, hostname: str, cache: float, bandwidth: float, unit_price: float, cost_method: str):
         self.hostname = hostname
+        self.cache_size = cache
         self.bandwidth = bandwidth
+        self.unit_price = unit_price
         self.cost_method = cost_method
         self.virtual_nodes = self.generate_virtual_nodes()
         self.cache = OrderedDict()  # 使用有序字典模拟缓存，键为资源路径，值为资源大小和时间戳
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
-        self.capacity = 5000  # 最大缓存容量
         self.rng = np.random.default_rng()
-        self.content_size = content_size
-        self.type = None  # **新增：用于存储节点分类**
 
     def generate_virtual_nodes(self):
         virtual_nodes = {}
@@ -33,37 +31,21 @@ class Node:
             virtual_nodes[virtual_node_hash] = self
         return virtual_nodes
 
-    def _evict(self):
-        """当缓存超过最大容量时，移除最久未使用的项"""
-        self.cache.popitem(last=False)  # 删除最久未使用的项（即最前面那个）
-
-    # def generate_content_size(self):
-    #     """生成符合t分布的content_size"""
-    #     content_size = self.rng.standard_t(2) + 1  # 直接生成标量
-    #     if content_size < 0:
-    #         content_size = 1
-    #     return content_size
-
     def generate_content_size(self):
-        return self.content_size
+        """生成符合t分布的content_size"""
+        content_size = self.rng.standard_t(2) + 1  # 直接生成标量
+        if content_size < 0:
+            content_size = 1
+        return content_size
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""
-        # 如果缓存中已有资源，直接返回缓存的大小，无需再次模拟，并更新时间戳
-        if path in self.cache:
-            content_size, _ = self.cache.pop(path)  # 删除原有的资源
-            current_time = time.time()  # 获取当前时间戳
-            # 将该资源重新插入并更新它的时间戳
-            self.cache[path] = (content_size, current_time)
-            return content_size
-
         # 模拟从源站获取的内容
         content_size = self.generate_content_size()  # 使用t分布生成新的内容大小
         current_time = time.time()  # 获取当前时间戳
         # 如果缓存已满，先清除最久未使用的项
-        if len(self.cache) >= self.capacity:
-            self._evict()
-
+        if len(self.cache) >= self.cache_size:
+            self.cache.popitem(last=False)
         # 将新资源加入缓存
         self.cache[path] = (content_size, current_time)
         return content_size
@@ -92,10 +74,10 @@ class Node:
         self.current_bandwidth += response.content_size
         return response
 
-    def record(self, unit_price: list):
+    def record(self):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost(unit_price))
+        self.costs.append(self.get_cost())
 
-    def get_cost(self, unit_price: list):
-        return cal_cost(self.bandwidths, self.cost_method, unit_price)
+    def get_cost(self):
+        return cal_cost(self.bandwidths, self.cost_method, self.unit_price)

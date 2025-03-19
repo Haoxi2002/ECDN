@@ -6,16 +6,16 @@ from util.entity import Request
 from util.tool import URL_Generator, cal_cost
 
 
-class Requester:  # 业务
-    def __init__(self, id: int, app_id: str, cost_method: str, url_generator: URL_Generator):
-        self.id = id
+class Business:  # 业务
+    def __init__(self, app_id: str, unit_price: float, cost_method: str, url_num: int, wave_file: str):
         self.app_id = app_id
+        self.unit_price = unit_price
         self.cost_method = cost_method
-        self.url_generator = url_generator
+        self.url_generator = URL_Generator(app_id, url_num)
+        self.request_nums = pd.read_csv(f"./data/{wave_file}")['log_count']
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
-        self.request_nums = pd.read_csv("./data/requester_simulation.csv")['log_count_day1']
 
     def send_request(self, request_handler, timestamp):
         base_request_num = self.request_nums[timestamp % 86400]
@@ -26,10 +26,10 @@ class Requester:  # 业务
             response = request_handler.handle_request(request)
             self.current_bandwidth += response.content_size
 
-    def record(self, unit_price: list):
+    def record(self):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost(unit_price))
+        self.costs.append(self.get_cost())
 
-    def get_cost(self, unit_price: list):
-        return cal_cost(self.bandwidths, self.cost_method, unit_price)
+    def get_cost(self):
+        return cal_cost(self.bandwidths, self.cost_method, self.unit_price)

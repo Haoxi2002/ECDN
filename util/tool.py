@@ -10,7 +10,7 @@ def cdn_hash(content: str):
     return xxhash.xxh64(content).intdigest() % hash_max
 
 
-def cal_cost(bandwidth: list, cost_method: str, unit_price: list):
+def cal_cost(bandwidth: list, cost_method: str, unit_price: float):
     remainder_month = len(bandwidth) % 8640
     if remainder_month == 0:
         # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
@@ -33,7 +33,7 @@ def cal_cost(bandwidth: list, cost_method: str, unit_price: list):
         # 计算95%的索引，取最接近95%的点
         top_95_index = int(np.ceil(len(sorted_bandwidth_month) * 0.95)) - 1
         # 返回该位置的值，四舍五入保留两位小数
-        return (round(float(sorted_bandwidth_month[top_95_index]), 2)) * unit_price[0]
+        return (round(float(sorted_bandwidth_month[top_95_index]), 2)) * unit_price
 
     def calc_day_95():
         # 按照升序排序
@@ -41,7 +41,7 @@ def cal_cost(bandwidth: list, cost_method: str, unit_price: list):
         # 取95%位置的带宽
         day_95_index = round(len(sorted_bandwidth_day) * 0.95) - 1  # 取95%位置的点
         # 返回该位置的值，四舍五入保留两位小数
-        return (round(sorted_bandwidth_day[day_95_index], 2)) * unit_price[1]
+        return (round(sorted_bandwidth_day[day_95_index], 2)) * unit_price
 
     def calc_day_peak_95():
         # 如果数据长度小于240，返回0（没有足够的晚高峰数据）
@@ -53,10 +53,10 @@ def cal_cost(bandwidth: list, cost_method: str, unit_price: list):
         peak_bandwidth_day.sort()
         # 计算95%位置的带宽值
         peak_95_index = round(len(peak_bandwidth_day) * 0.95) - 1
-        return (round(peak_bandwidth_day[peak_95_index], 2)) * unit_price[2]
+        return (round(peak_bandwidth_day[peak_95_index], 2)) * unit_price
 
     def calc_flat_rate():  # 买断
-        return (round(1, 2)) * unit_price[3]
+        return (round(1, 2)) * unit_price
 
     def calc_day_peak_month_avg():  # 日峰值月平均
         # 获取每日的最大值
@@ -65,7 +65,7 @@ def cal_cost(bandwidth: list, cost_method: str, unit_price: list):
             # 取当前段的最大值，如果剩余的不足288个元素，只取这些剩余部分
             daily_peaks.append(max(bandwidth_month[i:i + 288]))
         # 计算并返回月平均值
-        return (round(sum(daily_peaks) / len(daily_peaks), 2)) * unit_price[4]
+        return (round(sum(daily_peaks) / len(daily_peaks), 2)) * unit_price
 
     strategies = {
         'A': calc_month_95,

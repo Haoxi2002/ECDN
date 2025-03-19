@@ -1,13 +1,41 @@
 {
-  "node_nums_total": 10,
-  "node_A": {
-        "node_num": 5,
-        "node_bandwidth": 1024
+  "nodes":[
+    {
+      "num":2,
+      "cache":5000,
+      "bandwidth":1024,
+      "unit_price":1.0,
+      "cost_method":"A"
     },
-    "node_B": {
-        "node_num": 5,
-        "node_bandwidth": 2048
+    {
+      "num":2,
+      "cache":5000,
+      "bandwidth":2048,
+      "unit_price":1.0,
+      "cost_method":"B"
     },
-  "url_num": 10000,
-  "requester_nums": 5
+    {
+      "num":2,
+      "cache":5000,
+      "bandwidth":1024,
+      "unit_price":1.0,
+      "cost_method":"A"
+    }
+  ],
+  "businesses":[
+    {
+      "app_id":"business1",
+      "unit_price":1.0,
+      "cost_method":"A",
+      "url_num":100000,
+      "wave_file":"wave1.csv"
+    },
+    {
+      "app_id":"business1",
+      "unit_price":1.0,
+      "cost_method":"B",
+      "url_num":100000,
+      "wave_file":"wave2.csv"
+    }
+  ]
 }
