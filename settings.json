@@ -1,21 +1,21 @@
 {
   "nodes":[
     {
-      "num":2,
+      "num":1,
       "cache":5000,
       "bandwidth":1024,
       "unit_price":1.0,
       "cost_method":"A"
     },
     {
-      "num":2,
+      "num":1,
       "cache":5000,
       "bandwidth":2048,
       "unit_price":1.0,
-      "cost_method":"B"
+      "cost_method":"A"
     },
     {
-      "num":2,
+      "num":1,
       "cache":5000,
       "bandwidth":1024,
       "unit_price":1.0,
@@ -33,7 +33,14 @@
     {
       "app_id":"business2",
       "unit_price":1.0,
-      "cost_method":"B",
+      "cost_method":"A",
+      "url_num":100000,
+      "wave_file":"wave2.csv"
+    },
+    {
+      "app_id":"business3",
+      "unit_price":1.0,
+      "cost_method":"A",
       "url_num":100000,
       "wave_file":"wave2.csv"
     }

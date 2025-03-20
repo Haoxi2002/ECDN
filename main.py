@@ -86,7 +86,7 @@ def main():
 
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
-        if timestamp == 3 * 86400:
+        if timestamp == 5 * 86400:
             new_nodes = json.load(open('add_nodes.json', 'r', encoding='utf-8'))
             for node_type in new_nodes['nodes']:
                 for i in range(node_type['num']):

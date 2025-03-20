@@ -4,8 +4,8 @@
       "num":2,
       "cache":5000,
       "bandwidth":1024,
-      "unit_price":1.0,
-      "cost_method":"B"
+      "unit_price":0.5,
+      "cost_method":"A"
     }
   ]
 }
