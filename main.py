@@ -21,7 +21,9 @@ global_data = {
     "businesses": {},
     "total_cost": [],
     "total_bandwidth": [],
-    "timestamps": []
+    "timestamps": [],
+    "fetch_ratio": 0.0,
+    "bandwidth_ratio": 0.0
 }
 
 
@@ -46,6 +48,8 @@ def get_data():
         } for app_id, data in global_data["businesses"].items()},
         'total_cost': global_data["total_cost"][start_idx:],  # 添加总成本数据
         'total_bandwidth': global_data["total_bandwidth"][start_idx:],  # 添加总带宽数据
+        "fetch_ratio": global_data["fetch_ratio"],
+        "bandwidth_ratio": global_data["bandwidth_ratio"],
         'start_timestamp': start_idx * 300,
         'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 300, 300))
     })
@@ -56,6 +60,7 @@ def main():
 
     # 初始化节点
     nodes = []
+    bandwidth_sum = 0
     hostname_generator = Hostname_Generator()
     for node_type in setting['nodes']:
         for i in range(node_type['num']):
@@ -66,6 +71,7 @@ def main():
                 unit_price=node_type['unit_price'],
                 cost_method=node_type['cost_method'],
             ))
+            bandwidth_sum += node_type['bandwidth']
 
     # 初始化哈希环
     hash_ring = HashRing(nodes)
@@ -86,7 +92,7 @@ def main():
 
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000 * 2, 300), desc="Processing timestamps"):
-        if timestamp == 5 * 86400:
+        if timestamp == 30 * 86400:
             new_nodes = json.load(open('add_nodes.json', 'r', encoding='utf-8'))
             for node_type in new_nodes['nodes']:
                 for i in range(node_type['num']):
@@ -97,6 +103,7 @@ def main():
                         unit_price=node_type['unit_price'],
                         cost_method=node_type['cost_method'],
                     )
+                    bandwidth_sum += node_type['bandwidth']
                     new_node.bandwidths = [0] * (timestamp // 300)
                     new_node.costs = [0] * (timestamp // 300)
                     nodes.append(new_node)
@@ -124,6 +131,8 @@ def main():
             global_data["businesses"].setdefault(business.app_id, {"bandwidths": [], "costs": []})
             global_data["businesses"][business.app_id]["bandwidths"].append(business.bandwidths[-1])
             global_data["businesses"][business.app_id]["costs"].append(-1 * business.costs[-1])
+        global_data["fetch_ratio"] = request_handler.fetch_from_origin_num / request_handler.request_num * 100
+        global_data["bandwidth_ratio"] = tot_bandwidth / bandwidth_sum * 100
 
     # 输出并保存结果
     print("Request Num:", request_handler.request_num)

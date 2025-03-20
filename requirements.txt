@@ -2,3 +2,4 @@ tqdm
 pandas
 flask
 xxhash
+matplotlib

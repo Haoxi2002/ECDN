@@ -32,11 +32,12 @@ class Node:
         return virtual_nodes
 
     def generate_content_size(self):
-        """生成符合t分布的content_size"""
-        content_size = self.rng.standard_t(2) + 1  # 直接生成标量
-        if content_size < 0:
-            content_size = 1
-        return content_size
+        # """生成符合t分布的content_size"""
+        # content_size = self.rng.standard_t(2) + 1  # 直接生成标量
+        # if content_size < 0:
+        #     content_size = 1
+        # return content_size
+        return 1
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""

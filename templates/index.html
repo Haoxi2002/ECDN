@@ -27,6 +27,9 @@
 <body>
     <h2>带宽使用情况</h2>
     <div id="bandwidth-chart" class="chart"></div>
+    <div id="bandwidth-ratio-display" style="text-align: left; font-size: 16px; font-weight: bold; margin: 5px 0 0 10px;">
+    带宽占用比: <span id="bandwidth-ratio">0</span>% 回源率: <span id="fetch-ratio">0</span>%
+    </div>
 
     <h2>成本情况</h2>
     <div id="cost-chart" class="chart"></div>
@@ -63,6 +66,8 @@
                 const bandwidthSeries = [];
                 const costSeries = [];
                 document.getElementById("total-cost-value").innerText = data['total_cost'][data['total_cost'].length - 1].toFixed(2);
+                document.getElementById("bandwidth-ratio").innerText = data['bandwidth_ratio'].toFixed(2);
+                document.getElementById("fetch-ratio").innerText = data['fetch_ratio'].toFixed(2);
 
                 // 添加总带宽曲线
                 bandwidthSeries.push({
@@ -270,7 +275,7 @@
     });
 
     // 每秒更新一次数据
-    setInterval(updateCharts, 1000);
+    setInterval(updateCharts, 100);
 </script>
 </body>
 </html>

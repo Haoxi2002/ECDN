@@ -1,6 +1,8 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
+matplotlib.use('TkAgg')
 df = pd.read_csv('wave1.csv')
 data = df['log_count']
 sampled_data = list(data[::300])

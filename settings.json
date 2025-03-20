@@ -27,21 +27,21 @@
       "app_id":"business1",
       "unit_price":1.0,
       "cost_method":"A",
-      "url_num":100000,
+      "url_num":1000,
       "wave_file":"wave1.csv"
     },
     {
       "app_id":"business2",
       "unit_price":1.0,
       "cost_method":"A",
-      "url_num":100000,
+      "url_num":1000,
       "wave_file":"wave2.csv"
     },
     {
       "app_id":"business3",
       "unit_price":1.0,
       "cost_method":"A",
-      "url_num":100000,
+      "url_num":1000,
       "wave_file":"wave2.csv"
     }
   ]
