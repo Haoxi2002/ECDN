@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>节点和请求者监控</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .chart {
+            width: 95vw;
+            height: calc(50vh - 50px);  /* 减去padding和标题的高度 */
+            margin: 10px auto;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>带宽使用情况</h2>
+    <div id="bandwidth-chart" class="chart"></div>
+
+    <h2>成本情况</h2>
+    <div id="cost-chart" class="chart"></div>
+
+    <script>
+    let bandwidthChart;
+    let costChart;
+    // 存储选中状态
+    let bandwidthSelected = {};
+    let costSelected = {};
+
+    function initCharts() {
+        bandwidthChart = echarts.init(document.getElementById('bandwidth-chart'));
+        costChart = echarts.init(document.getElementById('cost-chart'));
+
+        // 监听图例选择事件，更新选中状态
+        bandwidthChart.on('legendselectchanged', function(params) {
+            bandwidthSelected = params.selected;
+        });
+        costChart.on('legendselectchanged', function(params) {
+            costSelected = params.selected;
+        });
+
+        updateCharts();
+    }
+
+    function updateCharts() {
+        fetch('/data')
+            .then(response => response.json())
+            .then(data => {
+                const bandwidthSeries = [];
+                const costSeries = [];
+
+                // 添加总带宽曲线
+                bandwidthSeries.push({
+                    name: 'Total Bandwidth',
+                    type: 'line',
+                    data: data['total_bandwidth'],
+                    smooth: true,
+                    lineStyle: {
+                        width: 3,
+                        type: 'solid'
+                    },
+                    symbol: 'none',
+                    itemStyle: {
+                        color: '#ff0000'
+                    }
+                });
+
+                // 添加节点数据
+                for (let hostname in data['nodes']) {
+                    bandwidthSeries.push({
+                        name: hostname,
+                        type: 'line',
+                        data: data['nodes'][hostname]['bandwidths'],
+                        smooth: true,
+                        lineStyle: { width: 2 },
+                        symbol: 'none'
+                    });
+                    costSeries.push({
+                        name: hostname,
+                        type: 'line',
+                        data: data['nodes'][hostname]['costs'],
+                        smooth: true,
+                        lineStyle: { width: 2 },
+                        symbol: 'none'
+                    });
+                }
+
+                // 添加请求者数据
+                for (let app_id in data['businesses']) {
+                    bandwidthSeries.push({
+                        name: app_id,
+                        type: 'line',
+                        data: data['businesses'][app_id]['bandwidths'],
+                        smooth: true,
+                        lineStyle: { width: 2 },
+                        symbol: 'none'
+                    });
+                    costSeries.push({
+                        name: app_id,
+                        type: 'line',
+                        data: data['businesses'][app_id]['costs'],
+                        smooth: true,
+                        lineStyle: { width: 2 },
+                        symbol: 'none'
+                    });
+                }
+
+                // 添加总成本曲线
+                costSeries.push({
+                    name: 'Total Cost',
+                    type: 'line',
+                    data: data['total_cost'],
+                    smooth: true,
+                    lineStyle: {
+                        width: 3,
+                        type: 'solid'
+                    },
+                    symbol: 'none',
+                    itemStyle: {
+                        color: '#ff0000'
+                    }
+                });
+
+                // 动态构造图例数据，确保名称与 series 中完全一致
+                const nodeNames = Object.keys(data['nodes']);
+                const businessNames = Object.keys(data['businesses']);
+                const legendDataBandwidth = ['Total Bandwidth'].concat(nodeNames).concat(businessNames);
+                const legendDataCost = ['Total Cost'].concat(nodeNames).concat(businessNames);
+
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            const timestamp = data['start_timestamp'] + params[0].axisValue * 300;
+                            const totalDays = Math.floor(timestamp / 86400);
+                            const totalHours = Math.floor((timestamp % 86400) / 3600);
+                            const totalMinutes = Math.floor((timestamp % 3600) / 60);
+                            let result = `第${totalDays}天 ${totalHours}时${totalMinutes}分<br/>`;
+                            params.forEach(param => {
+                                result += `${param.seriesName}: ${param.value.toFixed(2)}<br/>`;
+                            });
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: legendDataBandwidth,
+                        type: 'scroll',
+                        orient: 'vertical',
+                        right: '1%',
+                        top: 20,
+                        bottom: 20,
+                        // 此处不设置 selected，则所有图例默认显示
+                        // 如果需要保存用户选择状态，可以采用 bandwidthSelected 对象，但要确保初始状态合理
+                        selected: Object.keys(bandwidthSelected).length > 0 ? bandwidthSelected :
+                            Object.fromEntries(legendDataBandwidth.map(name => [name, true]))
+                    },
+                    grid: {
+                        left: '0%',
+                        right: '12%',
+                        bottom: '5%',
+                        top: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [...Array(data['timestamps'].length).keys()],
+                        name: '时间',
+                        axisLabel: {
+                            formatter: function(value) {
+                                const timestamp = data['start_timestamp'] + value * 300;
+                                const days = Math.floor(timestamp / 86400);
+                                return `${days}d`;
+                            },
+                            interval: 288
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '带宽 (MB/s)',
+                        splitLine: {
+                            show: true,
+                            lineStyle: { type: 'dashed' }
+                        }
+                    },
+                    series: bandwidthSeries,
+                    animation: false
+                };
+
+                const costOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            const timestamp = data['start_timestamp'] + params[0].axisValue * 300;
+                            const totalDays = Math.floor(timestamp / 86400);
+                            const totalHours = Math.floor((timestamp % 86400) / 3600);
+                            const totalMinutes = Math.floor((timestamp % 3600) / 60);
+                            let result = `第${totalDays}天 ${totalHours}时${totalMinutes}分<br/>`;
+                            params.forEach(param => {
+                                result += `${param.seriesName}: ${param.value.toFixed(2)}<br/>`;
+                            });
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: legendDataCost,
+                        type: 'scroll',
+                        orient: 'vertical',
+                        right: '1%',
+                        top: 20,
+                        bottom: 20,
+                        selected: Object.keys(costSelected).length > 0 ? costSelected :
+                            Object.fromEntries(legendDataCost.map(name => [name, true]))
+                    },
+                    grid: {
+                        left: '0%',
+                        right: '12%',
+                        bottom: '5%',
+                        top: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [...Array(data['timestamps'].length).keys()],
+                        name: '时间',
+                        axisLabel: {
+                            formatter: function(value) {
+                                const timestamp = data['start_timestamp'] + value * 300;
+                                const days = Math.floor(timestamp / 86400);
+                                return `${days}d`;
+                            },
+                            interval: 288
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '成本',
+                        splitLine: {
+                            show: true,
+                            lineStyle: { type: 'dashed' }
+                        }
+                    },
+                    series: costSeries,
+                    animation: false
+                };
+
+                bandwidthChart.setOption(option);
+                costChart.setOption(costOption);
+            });
+    }
+
+    window.addEventListener('load', initCharts);
+    window.addEventListener('resize', () => {
+        if (bandwidthChart) bandwidthChart.resize();
+        if (costChart) costChart.resize();
+    });
+
+    // 每秒更新一次数据
+    setInterval(updateCharts, 1000);
+</script>
+</body>
+</html>
