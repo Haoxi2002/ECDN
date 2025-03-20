@@ -1,0 +1,11 @@
+{
+  "businesses":[
+    {
+      "app_id":"business4",
+      "unit_price":1.0,
+      "cost_method":"A",
+      "url_num":1000,
+      "wave_file":"wave1.csv"
+    }
+  ]
+}

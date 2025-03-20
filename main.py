@@ -109,6 +109,19 @@ def main():
                     nodes.append(new_node)
                     hash_ring.add_node(new_node)
                     global_data["nodes"].setdefault(new_node.hostname, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300)})
+            new_businesses = json.load(open('add_businesses.json', 'r', encoding='utf-8'))
+            for business in new_businesses["businesses"]:
+                new_businesses = Business(
+                    app_id=business['app_id'],
+                    unit_price=business['unit_price'],
+                    cost_method=business['cost_method'],
+                    url_num=business['url_num'],
+                    wave_file=business['wave_file']
+                )
+                new_businesses.bandwidths = [0] * (timestamp // 300)
+                new_businesses.costs = [0] * (timestamp // 300)
+                businesses.append(new_businesses)
+                global_data["businesses"].setdefault(new_businesses.app_id, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300)})
         for business in businesses:
             business.send_request(request_handler, timestamp)
         tot_cost = 0
