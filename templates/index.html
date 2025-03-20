@@ -30,6 +30,9 @@
 
     <h2>成本情况</h2>
     <div id="cost-chart" class="chart"></div>
+    <div id="total-cost-display" style="text-align: left; font-size: 16px; font-weight: bold; margin: 5px 0 0 10px;">
+    总成本: <span id="total-cost-value">0</span>
+    </div>
 
     <script>
     let bandwidthChart;
@@ -59,6 +62,7 @@
             .then(data => {
                 const bandwidthSeries = [];
                 const costSeries = [];
+                document.getElementById("total-cost-value").innerText = data['total_cost'][data['total_cost'].length - 1].toFixed(2);
 
                 // 添加总带宽曲线
                 bandwidthSeries.push({
