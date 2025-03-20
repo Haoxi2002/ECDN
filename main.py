@@ -36,7 +36,7 @@ def index():
 def get_data():
     # 只返回最近8640个数据点（一个月）
     data_length = len(global_data["total_bandwidth"])
-    start_idx = max(0, data_length - 8640)
+    start_idx = max(0, data_length - 8640 * 2)
     return jsonify({
         'nodes': {hostname: {
             "bandwidths": data["bandwidths"][start_idx:],
@@ -51,7 +51,7 @@ def get_data():
         "fetch_ratio": global_data["fetch_ratio"],
         "bandwidth_ratio": global_data["bandwidth_ratio"],
         'start_timestamp': start_idx * 300,
-        'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 300, 300))
+        'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 2 * 300 + 86400, 300))
     })
 
 
