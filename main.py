@@ -23,7 +23,9 @@ global_data = {
     "total_bandwidth": [],
     "timestamps": [],
     "fetch_ratio": 0.0,
-    "bandwidth_ratio": 0.0
+    "bandwidth_ratio": 0.0,
+    "total_cost_before": [],
+    "total_cost_after": [],
 }
 
 
@@ -37,6 +39,7 @@ def get_data():
     # 只返回最近8640个数据点（一个月）
     data_length = len(global_data["total_bandwidth"])
     start_idx = max(0, data_length - 8640 * 2)
+    split_idx = 30 * 86400 // 300
     return jsonify({
         'nodes': {hostname: {
             "bandwidths": data["bandwidths"][start_idx:],
@@ -47,6 +50,8 @@ def get_data():
             "costs": data["costs"][start_idx:]
         } for app_id, data in global_data["businesses"].items()},
         'total_cost': global_data["total_cost"][start_idx:],  # 添加总成本数据
+        'total_cost_before': global_data["total_cost_before"][:split_idx],  # 前30天数据
+        'total_cost_after': global_data["total_cost_after"][start_idx:],    # 后30天数据
         'total_bandwidth': global_data["total_bandwidth"][start_idx:],  # 添加总带宽数据
         "fetch_ratio": global_data["fetch_ratio"],
         "bandwidth_ratio": global_data["bandwidth_ratio"],
@@ -134,6 +139,11 @@ def main():
             business.record()
             tot_cost -= business.costs[-1]
         global_data["total_cost"].append(tot_cost)
+        if timestamp < 30 * 86400:
+            global_data["total_cost_before"].append(tot_cost)
+            global_data["total_cost_after"].append(0)  # 后30天先填充0
+        else:
+            global_data["total_cost_after"].append(tot_cost)
         global_data["total_bandwidth"].append(tot_bandwidth)
         global_data["timestamps"].append(timestamp)
         for node in nodes:
