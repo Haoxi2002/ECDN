@@ -59,6 +59,7 @@
         updateCharts();
     }
 
+    let lastTime
     function updateCharts() {
         fetch('/data')
             .then(response => response.json())
@@ -153,7 +154,7 @@
                     tooltip: {
                         trigger: 'axis',
                         formatter: function(params) {
-                            const timestamp = data['start_timestamp'] + params[0].axisValue * 300;
+                            const timestamp = 0 + params[0].axisValue * 300;
                             const totalDays = Math.floor(timestamp / 86400);
                             const totalHours = Math.floor((timestamp % 86400) / 3600);
                             const totalMinutes = Math.floor((timestamp % 3600) / 60);
@@ -185,11 +186,11 @@
                     },
                     xAxis: {
                         type: 'category',
-                        data: [...Array(data['timestamps'].length).keys()],
+                        data: [...Array(8640 * 2).keys()],  // 显示两个月
                         name: '时间',
                         axisLabel: {
                             formatter: function(value) {
-                                const timestamp = data['start_timestamp'] + value * 300;
+                                const timestamp = 0 + value * 300;
                                 const days = Math.floor(timestamp / 86400);
                                 return `${days}d`;
                             },
@@ -212,7 +213,7 @@
                     tooltip: {
                         trigger: 'axis',
                         formatter: function(params) {
-                            const timestamp = data['start_timestamp'] + params[0].axisValue * 300;
+                            const timestamp = 0 + params[0].axisValue * 300;
                             const totalDays = Math.floor(timestamp / 86400);
                             const totalHours = Math.floor((timestamp % 86400) / 3600);
                             const totalMinutes = Math.floor((timestamp % 3600) / 60);
@@ -242,11 +243,11 @@
                     },
                     xAxis: {
                         type: 'category',
-                        data: [...Array(data['timestamps'].length).keys()],
+                        data: [...Array(8640 * 2).keys()], // 显示两个月
                         name: '时间',
                         axisLabel: {
                             formatter: function(value) {
-                                const timestamp = data['start_timestamp'] + value * 300;
+                                const timestamp = 0 + value * 300;
                                 const days = Math.floor(timestamp / 86400);
                                 return `${days}d`;
                             },

@@ -49,9 +49,7 @@ def get_data():
         'total_cost': global_data["total_cost"][start_idx:],  # 添加总成本数据
         'total_bandwidth': global_data["total_bandwidth"][start_idx:],  # 添加总带宽数据
         "fetch_ratio": global_data["fetch_ratio"],
-        "bandwidth_ratio": global_data["bandwidth_ratio"],
-        'start_timestamp': start_idx * 300,
-        'timestamps': list(range(start_idx * 300, start_idx * 300 + 8640 * 2 * 300 + 86400, 300))
+        "bandwidth_ratio": global_data["bandwidth_ratio"]
     })
 
 
