@@ -66,8 +66,8 @@
                 const bandwidthSeries = [];
                 const costSeries = [];
                 document.getElementById("total-cost-value").innerText = data['total_cost'][data['total_cost'].length - 1].toFixed(2);
-                document.getElementById("total-cost-before-value").innerText = data['total_cost_before'][data['total_cost_before'].length - 1].toFixed(2);
-                document.getElementById("total-cost-after-value").innerText = data['total_cost_after'][data['total_cost_after'].length - 1].toFixed(2);
+                document.getElementById("total-cost-before-value").innerText = data['total_cost'].length <= 8640 ? data['total_cost'][data['total_cost'].length - 1].toFixed(2) : data['total_cost'][29].toFixed(2)
+                document.getElementById("total-cost-after-value").innerText = data['total_cost'].length <= 8640 ? 0 : data['total_cost'][data['total_cost'].length - 1].toFixed(2)
                 document.getElementById("bandwidth-ratio").innerText = data['bandwidth_ratio'].toFixed(2);
                 document.getElementById("fetch-ratio").innerText = data['fetch_ratio'].toFixed(2);
 
