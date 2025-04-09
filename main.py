@@ -21,7 +21,6 @@ global_data = {
     "businesses": {},
     "total_cost": [],
     "total_bandwidth": [],
-    "timestamps": [],
     "fetch_ratio": 0.0,
     "bandwidth_ratio": 0.0
 }
@@ -34,7 +33,6 @@ def index():
 
 @app.route('/data')
 def get_data():
-    # 只返回最近8640个数据点（一个月）
     data_length = len(global_data["total_bandwidth"])
     start_idx = max(0, data_length - 8640 * 2)
     return jsonify({
@@ -133,7 +131,6 @@ def main():
             tot_cost -= business.costs[-1]
         global_data["total_cost"].append(tot_cost)
         global_data["total_bandwidth"].append(tot_bandwidth)
-        global_data["timestamps"].append(timestamp)
         for node in nodes:
             global_data["nodes"].setdefault(node.hostname, {"bandwidths": [], "costs": []})
             global_data["nodes"][node.hostname]["bandwidths"].append(node.bandwidths[-1])
