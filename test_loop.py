@@ -1,10 +1,13 @@
 import json
 import tqdm
+import statistics
 from node import Node
 from hash_ring import HashRing
 from request_handler import RequestHandler
 from business import Business
 from util.tool import Hostname_Generator
+from tabulate import tabulate
+
 
 global_data = {
     "nodes": {},
@@ -51,7 +54,8 @@ def run_simulation(setting, cost_method_combination):
         ))
 
     # Process timestamps
-    for timestamp in tqdm.tqdm(range(0, 2592000, 300), desc="Processing timestamps"):
+    # 3 days
+    for timestamp in tqdm.tqdm(range(0, 259200, 300), desc="Processing timestamps"):
         for business in businesses:
             business.send_request(request_handler, timestamp)
 
@@ -96,12 +100,43 @@ def main():
     from itertools import product
     cost_method_combinations = product(cost_method_options, repeat=node_count)
 
-    # For each combination, run the simulation and print the result
+    # Store the results for each combination
+    all_results = []
+
+    # For each combination, run the simulation 10 times and store the result
     for combination in cost_method_combinations:
-        global_data["total_cost"].clear()  # Clear the previous results
-        print(f"Running simulation for cost_method combination: {combination}")
-        last_total_cost = run_simulation(setting, combination)
-        print(f"Last total_cost for combination {combination}: {last_total_cost}")
+        last_total_costs = []
+        for _ in range(10):  # Run the simulation 10 times for each combination
+            global_data["total_cost"].clear()  # Clear the previous results
+            last_total_cost = run_simulation(setting, combination)
+            last_total_costs.append(last_total_cost)
+
+        # Calculate average and variance for the last total costs
+        avg_cost = round(statistics.mean(last_total_costs), 2)
+        variance_cost = round(statistics.variance(last_total_costs), 2)
+
+        # Store the results
+        all_results.append({
+            "combination": combination,
+            "avg_cost": avg_cost,
+            "variance_cost": variance_cost
+        })
+
+        # Print intermediate results during the simulation
+        print(f"Cost Method Combination: {combination}")
+        print(f"  Average Total Cost: {avg_cost}")
+        print(f"  Variance of Total Cost: {variance_cost}")
+        print("\n")
+
+    # Print the final results after all simulations
+    print("\n--- Final Simulation Results ---")
+    headers = ["Cost Method Combination", "Average Total Cost", "Variance of Total Cost"]
+    table_data = []
+
+    for result in all_results:
+        table_data.append([result['combination'], result['avg_cost'], result['variance_cost']])
+
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
 
 if __name__ == "__main__":
