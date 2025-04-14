@@ -67,7 +67,7 @@ def run_simulation(setting, cost_method_combination):
     step_counter = 0  # 计数器，用于跟踪当前是第几个步骤
 
     # 遍历时间戳，处理每个5分钟的时段
-    for timestamp in tqdm.tqdm(range(0, 2592000, 300), desc="Processing timestamps"):
+    for timestamp in tqdm.tqdm(range(0, 864000, 300), desc="Processing timestamps"):
         step_counter += 1  # 步骤加1
 
         # 处理每个业务的请求
