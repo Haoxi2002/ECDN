@@ -1,3 +1,4 @@
+from fpdf import FPDF
 import json
 import tqdm
 import statistics
@@ -8,6 +9,7 @@ from business import Business
 from util.tool import Hostname_Generator
 from tabulate import tabulate
 from itertools import product
+import os
 
 global_data = {
     "nodes": {},
@@ -18,6 +20,66 @@ global_data = {
     "fetch_ratio": 0.0,
     "bandwidth_ratio": 0.0
 }
+
+
+def generate_pdf(results):
+    # Create the results folder if it doesn't exist
+    output_folder = './results'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    # Create a PDF object
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # Title
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt="Simulation Results", ln=True, align="C")
+
+    # Line break
+    pdf.ln(10)
+
+    # Table headers with smaller font
+    pdf.set_font("Arial", 'B', 10)  # Reduce the font size of the headers
+    headers = ["Cost Method Combination", "Bandwidth Combination", "Average Total Cost", "Variance of Total Cost"]
+
+    # Adjusted column width to fit the content
+    column_width = 45
+    for header in headers:
+        pdf.cell(column_width, 10, header, border=1, align="C")
+    pdf.ln()
+
+    # Table content
+    pdf.set_font("Arial", '', 10)  # Set a slightly smaller font for the content
+    for result in results:
+        pdf.cell(column_width, 10, str(result['cost_combination']), border=1, align="C")
+        pdf.cell(column_width, 10, str(result['bandwidth_combination']), border=1, align="C")
+        pdf.cell(column_width, 10, str(result['avg_cost']), border=1, align="C")
+        pdf.cell(column_width, 10, str(result['variance_cost']), border=1, align="C")
+        pdf.ln()
+
+    # Line break before max/min values
+    pdf.ln(10)
+
+    # Max and Min Average Cost with line breaks to prevent overflow
+    max_result = max(results, key=lambda x: x['avg_cost'])
+    min_result = min(results, key=lambda x: x['avg_cost'])
+
+    pdf.set_font("Arial", 'B', 10)
+    # Add line breaks and fit text within the page
+    pdf.cell(200, 10, txt=f"Maximum Average Total Cost: {max_result['avg_cost']}", ln=True)
+    pdf.cell(200, 10,
+             txt=f"(Cost Combination: {max_result['cost_combination']}, Bandwidth Combination: {max_result['bandwidth_combination']})",
+             ln=True)
+    pdf.ln(5)  # Small break between max and min
+    pdf.cell(200, 10, txt=f"Minimum Average Total Cost: {min_result['avg_cost']}", ln=True)
+    pdf.cell(200, 10,
+             txt=f"(Cost Combination: {min_result['cost_combination']}, Bandwidth Combination: {min_result['bandwidth_combination']})",
+             ln=True)
+
+    # Save the PDF to the specified folder
+    pdf.output(f"{output_folder}/simulation_results.pdf")
 
 
 def run_simulation(setting, cost_method_combination, bandwidth_option_combination):
@@ -140,26 +202,34 @@ def main():
     # Generate all combinations of cost_methods (for 8 combinations)
     # 这将枚举8个组合，比如（A, A, A, A）、（A, A, A, B）等
     cost_method_combinations = list(product(cost_method_options, repeat=node_count))
-    print(f"Cost method combinations: {cost_method_combinations}")
+    # print(f"Cost method combinations: {cost_method_combinations}")
 
     # 定义带宽选项（现在只有1024）
     bandwidth_options = [1024]
 
     # 生成所有可能的带宽配置组合，并将其转换为列表
     bandwidth_option_combinations = list(product(bandwidth_options, repeat=node_count))
-    print(f"Bandwidth combinations: {bandwidth_option_combinations}")
+    # print(f"Bandwidth combinations: {bandwidth_option_combinations}")
 
     all_results = []
+
+    cost_method_combinations = [('A','A','A'),('A','B','A'),('A','B','B'),('B','B','B')]
+    bandwidth_option_combinations = [(1024, 1024, 1024), (1024, 2048, 1024), (1024, 2048, 2048), (2048, 2048, 2048)]
+
+    # cost_method_combinations = [('A', 'A', 'A')]
+    # bandwidth_option_combinations = [(1024, 1024, 1024), (1024, 2048, 1024)]
 
     # 对于每个cost_method组合和每个bandwidth配置组合，运行2次模拟并存储结果
     for cost_combination in cost_method_combinations:
         # 重新生成带宽组合，确保每个cost_method组合都和所有带宽组合进行配对
         for bandwidth_combination in bandwidth_option_combinations:
             last_total_costs = []
-            for _ in range(2):  # 对每个组合运行2次模拟
+            for _ in range(5):  # 对每个组合运行2次模拟
                 global_data["total_cost"].clear()  # Clear the previous results
                 last_total_cost = run_simulation(setting, cost_combination, bandwidth_combination)
                 last_total_costs.append(last_total_cost)
+            print(
+                f"Last Total Costs for Cost Combination {cost_combination} and Bandwidth Combination {bandwidth_combination}: {last_total_costs}")
 
             # Calculate average and variance for the last total costs
             avg_cost = round(statistics.mean(last_total_costs), 2)
@@ -173,11 +243,16 @@ def main():
                 "variance_cost": variance_cost
             })
 
+
+
             # Print intermediate results during the simulation
             print(f"Cost Method Combination: {cost_combination}, Bandwidth Combination: {bandwidth_combination}")
             print(f"  Average Total Cost: {avg_cost}")
             print(f"  Variance of Total Cost: {variance_cost}")
             print("\n")
+
+    # Generate PDF with results
+    generate_pdf(all_results)
 
     # Print the final results after all simulations
     print("\n--- Final Simulation Results ---")
