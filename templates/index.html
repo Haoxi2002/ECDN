@@ -59,23 +59,74 @@
         updateCharts();
     }
 
+    let last_index = 0;
+    let data_cache = {
+        'nodes': {},
+        'businesses': {},
+        'total_cost': [],
+        'total_bandwidth': []
+    };
     function updateCharts() {
-        fetch('/data')
+        fetch(`/data?last_index=${last_index}`)
             .then(response => response.json())
             .then(data => {
-                const bandwidthSeries = [];
-                const costSeries = [];
-                document.getElementById("total-cost-value").innerText = data['total_cost'][data['total_cost'].length - 1].toFixed(2);
-                document.getElementById("total-cost-before-value").innerText = data['total_cost'].length <= 8640 ? data['total_cost'][data['total_cost'].length - 1].toFixed(2) : data['total_cost'][29].toFixed(2)
-                document.getElementById("total-cost-after-value").innerText = data['total_cost'].length <= 8640 ? 0 : data['total_cost'][data['total_cost'].length - 1].toFixed(2)
+                // 将新数据添加到cache中
+                last_index = data['new_index'];
+                data_cache['total_bandwidth'].push(...data['total_bandwidth']);
+                data_cache['total_cost'].push(...data['total_cost']);
+                for (let hostname in data['nodes']) {
+                    if (hostname in data_cache['nodes']) {
+                        data_cache['nodes'][hostname]['bandwidths'].push(...data['nodes'][hostname]['bandwidths']);
+                        data_cache['nodes'][hostname]['costs'].push(...data['nodes'][hostname]['costs']);
+                    }
+                    else {
+                        data_cache['nodes'][hostname] = {};
+                        data_cache['nodes'][hostname]['bandwidths'] = data['nodes'][hostname]['bandwidths'];
+                        data_cache['nodes'][hostname]['costs'] = data['nodes'][hostname]['costs'];
+                    }
+                }
+                for (let app_id in data['businesses']) {
+                    if (app_id in data_cache['businesses']) {
+                        data_cache['businesses'][app_id]['bandwidths'].push(...data['businesses'][app_id]['bandwidths']);
+                        data_cache['businesses'][app_id]['costs'].push(...data['businesses'][app_id]['costs']);
+                    }
+                    else {
+                        data_cache['businesses'][app_id] = {};
+                        data_cache['businesses'][app_id]['bandwidths'] = data['businesses'][app_id]['bandwidths'];
+                        data_cache['businesses'][app_id]['costs'] = data['businesses'][app_id]['costs'];
+                    }
+                }
+
+                // 修改数值显示部分
+                document.getElementById("total-cost-value").innerText = data_cache['total_cost'][data_cache['total_cost'].length - 1].toFixed(2);
+                document.getElementById("total-cost-before-value").innerText = data_cache['total_cost'].length <= 8640 ? data_cache['total_cost'][data_cache['total_cost'].length - 1].toFixed(2) : data_cache['total_cost'][29].toFixed(2)
+                document.getElementById("total-cost-after-value").innerText = data_cache['total_cost'].length <= 8640 ? 0 : data_cache['total_cost'][data_cache['total_cost'].length - 1].toFixed(2)
                 document.getElementById("bandwidth-ratio").innerText = data['bandwidth_ratio'].toFixed(2);
                 document.getElementById("fetch-ratio").innerText = data['fetch_ratio'].toFixed(2);
 
+                const bandwidthSeries = [];
+                const costSeries = [];
                 // 添加总带宽曲线
                 bandwidthSeries.push({
                     name: 'Total Bandwidth',
                     type: 'line',
-                    data: data['total_bandwidth'],
+                    data: data_cache['total_bandwidth'],
+                    smooth: true,
+                    lineStyle: {
+                        width: 3,
+                        type: 'solid'
+                    },
+                    symbol: 'none',
+                    itemStyle: {
+                        color: '#ff0000'
+                    }
+                });
+
+                // 添加总成本曲线
+                costSeries.push({
+                    name: 'Total Cost',
+                    type: 'line',
+                    data: data_cache['total_cost'],
                     smooth: true,
                     lineStyle: {
                         width: 3,
@@ -88,11 +139,11 @@
                 });
 
                 // 添加节点数据
-                for (let hostname in data['nodes']) {
+                for (let hostname in data_cache['nodes']) {
                     bandwidthSeries.push({
                         name: hostname,
                         type: 'line',
-                        data: data['nodes'][hostname]['bandwidths'],
+                        data: data_cache['nodes'][hostname]['bandwidths'],
                         smooth: true,
                         lineStyle: { width: 2 },
                         symbol: 'none'
@@ -100,7 +151,7 @@
                     costSeries.push({
                         name: hostname,
                         type: 'line',
-                        data: data['nodes'][hostname]['costs'],
+                        data: data_cache['nodes'][hostname]['costs'],
                         smooth: true,
                         lineStyle: { width: 2 },
                         symbol: 'none'
@@ -108,11 +159,11 @@
                 }
 
                 // 添加请求者数据
-                for (let app_id in data['businesses']) {
+                for (let app_id in data_cache['businesses']) {
                     bandwidthSeries.push({
                         name: app_id,
                         type: 'line',
-                        data: data['businesses'][app_id]['bandwidths'],
+                        data: data_cache['businesses'][app_id]['bandwidths'],
                         smooth: true,
                         lineStyle: { width: 2 },
                         symbol: 'none'
@@ -120,32 +171,16 @@
                     costSeries.push({
                         name: app_id,
                         type: 'line',
-                        data: data['businesses'][app_id]['costs'],
+                        data: data_cache['businesses'][app_id]['costs'],
                         smooth: true,
                         lineStyle: { width: 2 },
                         symbol: 'none'
                     });
                 }
 
-                // 添加总成本曲线
-                costSeries.push({
-                    name: 'Total Cost',
-                    type: 'line',
-                    data: data['total_cost'],
-                    smooth: true,
-                    lineStyle: {
-                        width: 3,
-                        type: 'solid'
-                    },
-                    symbol: 'none',
-                    itemStyle: {
-                        color: '#ff0000'
-                    }
-                });
-
                 // 动态构造图例数据，确保名称与 series 中完全一致
-                const nodeNames = Object.keys(data['nodes']);
-                const businessNames = Object.keys(data['businesses']);
+                const nodeNames = Object.keys(data_cache['nodes']);
+                const businessNames = Object.keys(data_cache['businesses']);
                 const legendDataBandwidth = ['Total Bandwidth'].concat(nodeNames).concat(businessNames);
                 const legendDataCost = ['Total Cost'].concat(nodeNames).concat(businessNames);
 
@@ -277,7 +312,7 @@
     });
 
     // 每秒更新一次数据
-    setInterval(updateCharts, 100);
+    setInterval(updateCharts, 1000);
 </script>
 </body>
 </html>

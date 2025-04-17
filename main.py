@@ -7,7 +7,7 @@ import threading
 import tqdm
 
 import pandas as pd
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 
 from node import Node
 from hash_ring import HashRing
@@ -33,19 +33,39 @@ def index():
 
 @app.route('/data')
 def get_data():
+    last_index = request.args.get('last_index', 0, type=int)
     data_length = len(global_data["total_bandwidth"])
-    start_idx = max(0, data_length - 8640 * 2)
+
+    # 处理节点数据
+    nodes_data = {}
+    for hostname, data in global_data["nodes"].items():
+        nodes_data[hostname] = {
+            "bandwidths": data["bandwidths"] if data.get('new', True) else data["bandwidths"][last_index:],
+            "costs": data["costs"] if data.get('new', True) else data["costs"][last_index:]
+        }
+        if data.get('new', True):
+            global_data["nodes"][hostname]['new'] = False
+
+    # 处理业务数据
+    businesses_data = {}
+    for app_id, data in global_data["businesses"].items():
+        businesses_data[app_id] = {
+            "bandwidths": data["bandwidths"] if data.get('new', True) else data["bandwidths"][last_index:],
+            "costs": data["costs"] if data.get('new', True) else data["costs"][last_index:]
+        }
+        if data.get('new', True):
+            global_data["businesses"][app_id]['new'] = False
+
+    # 处理总数据（始终返回增量）
+    total_bandwidth = global_data["total_bandwidth"][last_index:]
+    total_cost = global_data["total_cost"][last_index:]
+
     return jsonify({
-        'nodes': {hostname: {
-            "bandwidths": data["bandwidths"][start_idx:],
-            "costs": data["costs"][start_idx:]
-        } for hostname, data in global_data["nodes"].items()},
-        'businesses': {app_id: {
-            "bandwidths": data["bandwidths"][start_idx:],
-            "costs": data["costs"][start_idx:]
-        } for app_id, data in global_data["businesses"].items()},
-        'total_cost': global_data["total_cost"][start_idx:],  # 添加总成本数据
-        'total_bandwidth': global_data["total_bandwidth"][start_idx:],  # 添加总带宽数据
+        'new_index': data_length - 1 if data_length > 0 else 0,  # 返回最后有效索引
+        'nodes': nodes_data,
+        'businesses': businesses_data,
+        'total_cost': total_cost,
+        'total_bandwidth': total_bandwidth,
         "fetch_ratio": global_data["fetch_ratio"],
         "bandwidth_ratio": global_data["bandwidth_ratio"]
     })
@@ -104,7 +124,7 @@ def main():
                     new_node.costs = [0] * (timestamp // 300)
                     nodes.append(new_node)
                     hash_ring.add_node(new_node)
-                    global_data["nodes"].setdefault(new_node.hostname, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300)})
+                    global_data["nodes"].setdefault(new_node.hostname, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300), "new": True})
             new_businesses = json.load(open('add_businesses.json', 'r', encoding='utf-8'))
             for business in new_businesses["businesses"]:
                 new_businesses = Business(
@@ -117,7 +137,7 @@ def main():
                 new_businesses.bandwidths = [0] * (timestamp // 300)
                 new_businesses.costs = [0] * (timestamp // 300)
                 businesses.append(new_businesses)
-                global_data["businesses"].setdefault(new_businesses.app_id, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300)})
+                global_data["businesses"].setdefault(new_businesses.app_id, {"bandwidths": [0] * (timestamp // 300), "costs": [0] * (timestamp // 300), "new": True})
         for business in businesses:
             business.send_request(request_handler, timestamp)
         tot_cost = 0
@@ -132,11 +152,11 @@ def main():
         global_data["total_cost"].append(tot_cost)
         global_data["total_bandwidth"].append(tot_bandwidth)
         for node in nodes:
-            global_data["nodes"].setdefault(node.hostname, {"bandwidths": [], "costs": []})
+            global_data["nodes"].setdefault(node.hostname, {"bandwidths": [], "costs": [], 'new': True})
             global_data["nodes"][node.hostname]["bandwidths"].append(node.bandwidths[-1])
             global_data["nodes"][node.hostname]["costs"].append(node.costs[-1])
         for business in businesses:
-            global_data["businesses"].setdefault(business.app_id, {"bandwidths": [], "costs": []})
+            global_data["businesses"].setdefault(business.app_id, {"bandwidths": [], "costs": [], 'new': True})
             global_data["businesses"][business.app_id]["bandwidths"].append(business.bandwidths[-1])
             global_data["businesses"][business.app_id]["costs"].append(-1 * business.costs[-1])
         global_data["fetch_ratio"] = request_handler.fetch_from_origin_num / request_handler.request_num * 100
