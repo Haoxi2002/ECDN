@@ -225,7 +225,7 @@ def run_simulation(setting, cost_method_combination):
 
 
 def main():
-    setting = json.load(open('settings.json', 'r', encoding='utf-8'))
+    setting = json.load(open('../settings.json', 'r', encoding='utf-8'))
 
     # Define all possible cost_method combinations (A and B)
     cost_method_options = ['A', 'B']
