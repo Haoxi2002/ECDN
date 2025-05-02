@@ -12,15 +12,16 @@ class Business:  # 业务
         self.unit_price = unit_price
         self.cost_method = cost_method
         self.url_generator = URL_Generator(app_id, url_num)
-        self.request_nums = pd.read_csv(f"./data/{wave_file}")['log_count']
+        self.request_nums = pd.read_csv(f"./data/{wave_file}")['total_bw']
         self.current_bandwidth = 0
         self.bandwidths = []
         self.costs = []
 
     def send_request(self, request_handler, timestamp):
-        base_request_num = self.request_nums[timestamp % 86400]
-        fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
-        request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
+        base_request_num = round(self.request_nums[timestamp % 86400 / 300] / 500)
+        # fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
+        # request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
+        request_num = base_request_num
         for j in range(request_num):
             request = Request(self.url_generator.get_url(timestamp), timestamp)
             response = request_handler.handle_request(request)

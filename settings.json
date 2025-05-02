@@ -1,48 +1,76 @@
 {
   "nodes":[
     {
-      "num":1,
+      "num":70,
       "cache":5000,
       "bandwidth":1024,
       "unit_price":1.0,
       "cost_method":"A"
     },
     {
-      "num":1,
+      "num":70,
       "cache":5000,
       "bandwidth":2048,
       "unit_price":1.0,
       "cost_method":"A"
     },
     {
-      "num":1,
+      "num":70,
       "cache":5000,
-      "bandwidth":1024,
+      "bandwidth":2048,
       "unit_price":1.0,
-      "cost_method":"A"
+      "cost_method":"B"
     }
   ],
   "businesses":[
     {
-      "app_id":"business1",
+      "app_id":"baidu",
       "unit_price":1.0,
-      "cost_method":"A",
+      "cost_method":"B",
       "url_num":1000,
-      "wave_file":"wave1.csv"
+      "wave_file":"202503/business_baidu.csv"
     },
     {
-      "app_id":"business2",
+      "app_id":"bytedance-iaas",
       "unit_price":1.0,
       "cost_method":"A",
       "url_num":1000,
-      "wave_file":"wave2.csv"
+      "wave_file":"202503/business_bytedance-iaas.csv"
     },
     {
-      "app_id":"business3",
+      "app_id":"huya302-flv",
       "unit_price":1.0,
       "cost_method":"A",
       "url_num":1000,
-      "wave_file":"wave2.csv"
+      "wave_file":"202503/business_huya302-flv.csv"
+    },
+    {
+      "app_id":"kwai-single",
+      "unit_price":1.0,
+      "cost_method":"A",
+      "url_num":1000,
+      "wave_file":"202503/business_kwai-single.csv"
+    },
+    {
+      "app_id":"xhs",
+      "unit_price":1.0,
+      "cost_method":"B",
+      "url_num":1000,
+      "wave_file":"202503/business_xhs.csv"
+    },
+    {
+      "app_id":"zijie-vod",
+      "unit_price":1.0,
+      "cost_method":"A",
+      "url_num":1000,
+      "wave_file":"202503/business_zijie-vod.csv"
+    },
+    {
+      "app_id":"zijie302",
+      "unit_price":1.0,
+      "cost_method":"A",
+      "url_num":1000,
+      "wave_file":"202503/business_zijie302.csv"
     }
   ]
 }

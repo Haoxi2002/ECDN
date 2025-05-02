@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 matplotlib.use('TkAgg')
-df = pd.read_csv('wave1.csv')
-data = df['log_count']
-sampled_data = list(data[::300])
+df = pd.read_csv('202503/business_ppio-kwai-single.csv')
+data = df['total_bw']
+sampled_data = list(data)
 
 plt.figure(figsize=(10, 6))
 plt.plot(sampled_data)
