@@ -11,61 +11,43 @@ def cdn_hash(content: str):
 
 
 def cal_cost(bandwidth: list, cost_method: str, unit_price: float):
+    # 计算月数据（最后 8640 个点或补足）
     remainder_month = len(bandwidth) % 8640
-    if remainder_month == 0:
-        # 如果余数是0，表示数据长度正好是 8640 的整数倍，取最后 8640 个元素
-        bandwidth_month = bandwidth[-8640:]
-    else:
-        # 如果余数不为0，取最后余数个元素，补足一个月
-        bandwidth_month = bandwidth[-remainder_month:]
+    bandwidth_month = bandwidth[-remainder_month:] if remainder_month != 0 else bandwidth[-8640:]
 
+    # 计算日数据（最后 288 个点或补足）
     remainder_day = len(bandwidth_month) % 288
-    if remainder_day == 0:
-        # 如果余数是0，表示数据长度正好是 288 的整数倍，取最后一天的288个元素
-        bandwidth_day = bandwidth_month[-288:]
-    else:
-        #  如果余数不为0，取最后余数个元素，补足一天
-        bandwidth_day = bandwidth_month[-remainder_day:]
+    bandwidth_day = bandwidth_month[-remainder_day:] if remainder_day != 0 else bandwidth_month[-288:]
 
-    def calc_month_95():  # 月95
-        # 从小到大排序带宽数据
-        sorted_bandwidth_month = np.sort(bandwidth_month)
-        # 计算95%的索引，取最接近95%的点
-        top_95_index = int(np.ceil(len(sorted_bandwidth_month) * 0.95)) - 1
-        # 返回该位置的值，四舍五入保留两位小数
-        return (round(float(sorted_bandwidth_month[top_95_index]), 2)) * unit_price
+    def calc_month_95():
+        # 使用 partition 快速找到 95% 分位数（无需全排序）
+        k = int(len(bandwidth_month) * 0.95)
+        # 用 partition 将前 k 小的数放在左边，第 k 个数即 95% 分位数
+        partitioned = np.partition(bandwidth_month, k)
+        return round(float(partitioned[k]), 2) * unit_price
 
     def calc_day_95():
-        # 按照升序排序
-        sorted_bandwidth_day = sorted(bandwidth_day)
-        # 取95%位置的带宽
-        day_95_index = round(len(sorted_bandwidth_day) * 0.95) - 1  # 取95%位置的点
-        # 返回该位置的值，四舍五入保留两位小数
-        return (round(sorted_bandwidth_day[day_95_index], 2)) * unit_price
+        k = round(len(bandwidth_day) * 0.95) - 1
+        partitioned = np.partition(bandwidth_day, k)
+        return round(float(partitioned[k]), 2) * unit_price
 
     def calc_day_peak_95():
-        # 如果数据长度小于240，返回0（没有足够的晚高峰数据）
         if len(bandwidth_day) <= 240:
             return 0
-        # 从240到288之间的数据，晚高峰确认后为晚上8点到12点
         peak_bandwidth_day = bandwidth_day[240:]
-        # 对选取的数据进行升序排序
-        peak_bandwidth_day.sort()
-        # 计算95%位置的带宽值
-        peak_95_index = round(len(peak_bandwidth_day) * 0.95) - 1
-        return (round(peak_bandwidth_day[peak_95_index], 2)) * unit_price
+        k = round(len(peak_bandwidth_day) * 0.95) - 1
+        partitioned = np.partition(peak_bandwidth_day, k)
+        return round(float(partitioned[k]), 2) * unit_price
 
-    def calc_flat_rate():  # 买断
-        return (round(1, 2)) * unit_price
+    def calc_flat_rate():
+        return round(1.0, 2) * unit_price
 
-    def calc_day_peak_month_avg():  # 日峰值月平均
-        # 获取每日的最大值
-        daily_peaks = []
-        for i in range(0, len(bandwidth_month), 288):
-            # 取当前段的最大值，如果剩余的不足288个元素，只取这些剩余部分
-            daily_peaks.append(max(bandwidth_month[i:i + 288]))
-        # 计算并返回月平均值
-        return (round(sum(daily_peaks) / len(daily_peaks), 2)) * unit_price
+    def calc_day_peak_month_avg():
+        daily_peaks = [
+            np.max(bandwidth_month[i:i + 288])
+            for i in range(0, len(bandwidth_month), 288)
+        ]
+        return round(np.mean(daily_peaks), 2) * unit_price
 
     strategies = {
         'A': calc_month_95,
@@ -75,7 +57,7 @@ def cal_cost(bandwidth: list, cost_method: str, unit_price: float):
         'E': calc_day_peak_month_avg
     }
     if cost_method not in strategies:
-        raise ValueError(...)
+        raise ValueError("Invalid cost_method")
     return strategies[cost_method]()
 
 

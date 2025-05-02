@@ -37,7 +37,7 @@ class Node:
         # if content_size < 0:
         #     content_size = 1
         # return content_size
-        return 500  # 每个请求大小为500MB
+        return 256  # 每个请求大小为500MB，要和business.py->send_request()同步
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""
@@ -78,7 +78,6 @@ class Node:
     def record(self):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost())
 
     def get_cost(self):
         return cal_cost(self.bandwidths, self.cost_method, self.unit_price)

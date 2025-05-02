@@ -18,7 +18,7 @@ class Business:  # 业务
         self.costs = []
 
     def send_request(self, request_handler, timestamp):
-        base_request_num = round(self.request_nums[timestamp % 86400 / 300] / 500)
+        base_request_num = round(self.request_nums[timestamp % 86400 / 300] / 256)  # 每个请求大小500MB，要和node.py->generate_content_size()同步
         # fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
         # request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
         request_num = base_request_num
@@ -30,7 +30,6 @@ class Business:  # 业务
     def record(self):
         self.bandwidths.append(self.current_bandwidth)
         self.current_bandwidth = 0
-        self.costs.append(self.get_cost())
 
     def get_cost(self):
         return cal_cost(self.bandwidths, self.cost_method, self.unit_price)
