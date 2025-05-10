@@ -37,7 +37,7 @@ class Node:
         # if content_size < 0:
         #     content_size = 1
         # return content_size
-        return 256  # 每个请求大小为500MB，要和business.py->send_request()同步
+        return 16  # 每个请求大小为500MB，要和business.py->send_request()同步
 
     def fetch_from_origin(self, path: str):
         """模拟回源获取数据"""
