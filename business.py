@@ -18,7 +18,7 @@ class Business:  # 业务
         self.costs = []
 
     def send_request(self, request_handler, timestamp):
-        base_request_num = round(self.request_nums[timestamp % 86400 / 300] / 500)
+        base_request_num = round(self.request_nums[timestamp % 86400 / 300] / 32)  # 每个请求大小为32MB，需要与node.py->generate_content_size()保持一致
         # fluctuation = int(base_request_num * 0.05)  # 计算5%的波动
         # request_num = base_request_num + random.randint(-fluctuation, fluctuation)  # 加上波动
         request_num = base_request_num

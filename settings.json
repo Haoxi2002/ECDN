@@ -1,21 +1,21 @@
 {
   "nodes":[
     {
-      "num":70,
+      "num":100,
       "cache":5000,
       "bandwidth":1024,
       "unit_price":1.0,
       "cost_method":"A"
     },
     {
-      "num":70,
+      "num":100,
       "cache":5000,
       "bandwidth":2048,
       "unit_price":1.0,
       "cost_method":"A"
     },
     {
-      "num":70,
+      "num":100,
       "cache":5000,
       "bandwidth":2048,
       "unit_price":1.0,
