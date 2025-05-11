@@ -70,7 +70,7 @@ def run_simulation(setting, cost_method_combination, bandwidth_option_combinatio
 
 
 def main():
-    setting_enum = json.load(open('settings_enum.json', 'r', encoding='utf-8'))
+    setting_enum = json.load(open('settings_enum_const_bw_test.json', 'r', encoding='utf-8'))
     all_results = []
 
     for group in setting_enum["node_groups"]:
@@ -89,7 +89,7 @@ def main():
         for i, node in enumerate(nodes):
             print(f"  Node {i + 1}: {node}")
 
-        for _ in range(10):
+        for _ in range(2):
             cost = run_simulation(
                 setting,
                 [node['cost_method'] for node in nodes],
@@ -97,8 +97,8 @@ def main():
             )
             last_total_costs.append(cost)
 
-        avg_cost = round(statistics.mean(last_total_costs), 2)
-        variance_cost = round(statistics.variance(last_total_costs), 2)
+        avg_cost = round(statistics.mean(last_total_costs), 2)  # 保留两位小数
+        variance_cost = round(statistics.variance(last_total_costs), 2)  # 保留两位小数
 
         all_results.append({
             "group_name": group_name,
@@ -136,21 +136,32 @@ def main():
 
     baseline_cost = baseline['avg_cost']
 
-    # 构建数据，计算与 baseline 的差
+    # 构建数据，计算与 baseline 的差，保留两位小数
     table_data = [
         [
             r['group_name'],
-            r['avg_cost'],
-            r['variance_cost'],
-            round(r['avg_cost'] - baseline_cost, 2)
+            f"{r['avg_cost']:.2f}",  # 保留两位小数
+            f"{r['variance_cost']:.2f}",  # 保留两位小数
+            f"{r['avg_cost'] - baseline_cost:.2f}"  # 保留两位小数
         ]
         for r in all_results
     ]
-    print(tabulate(table_data, headers=headers, tablefmt="grid"))
-    print("Baseline Group: ", baseline_group_name)
 
-    with PdfPages("simulation_table_with_config.pdf") as pdf:
-        # 第1页：表格 + 标题
+    # 获取最大和最小成本
+    max_cost_group = max(all_results, key=lambda x: x['avg_cost'])
+    min_cost_group = min(all_results, key=lambda x: x['avg_cost'])
+
+    # 计算最大和最小成本的差异
+    max_min_text = f"Max Cost Group: {max_cost_group['group_name']} (Avg Cost: {max_cost_group['avg_cost']:.2f})\n"
+    max_min_text += f"Min Cost Group: {min_cost_group['group_name']} (Avg Cost: {min_cost_group['avg_cost']:.2f})"
+
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+    print(f"Baseline Group: {baseline_group_name}")
+    print(max_min_text)  # 打印最大最小成本的信息
+
+    # 使用 PdfPages 生成 PDF
+    with PdfPages("simulation_results.pdf") as pdf:
+        # 第1页：表格 + 标题 + 最大最小成本注释 + 基准组标注
         df = pd.DataFrame(table_data, columns=headers)
         fig, ax = plt.subplots(figsize=(8.5, 0.6 * len(df) + 2))  # 留空间给标题
         ax.axis('off')
@@ -159,44 +170,30 @@ def main():
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(1, 1.5)
+        ax.text(0, 0.05, max_min_text, ha='left', va='bottom', fontsize=10, weight='normal')  # 左对齐
+        ax.text(0, -0.05, f"Baseline Group: {baseline_group_name}", ha='left', va='top', fontsize=10,
+                weight='normal')  # 左对齐
         pdf.savefig(fig)
         plt.close()
 
-        # 第2页：baseline 配置（不分页，自适应高度）
-        baseline_lines = [f"Baseline Group: {baseline_group_name} (Index: {baseline_index + 1})"]
-        baseline_lines.append("Baseline Group Configuration:")
-        for i, node in enumerate(baseline["config"]["nodes"]):
-            baseline_lines.append(f"  Node {i + 1}: {node}")
-        baseline_text = "\n".join(baseline_lines)
-
-        baseline_fig_height = 0.2 * len(baseline_lines) + 2
-        fig, ax = plt.subplots(figsize=(8.5, baseline_fig_height))
-        ax.axis('off')
-        ax.text(0.5, 1.02, "Baseline Group Configuration", ha='center', va='top', fontsize=13, weight='bold')
-        ax.text(0, 0.98, baseline_text, va='top', ha='left', wrap=True, fontsize=10, family='monospace')
-        pdf.savefig(fig)
-        plt.close()
-
-        # 第3页：其他 group 配置（不分页）
+        # 第2页：所有配置
         config_lines = []
         for result in all_results:
-            if result["group_name"] == baseline_group_name:
-                continue
             config_lines.append(f"Group {result['group_name']} config:")
             for i, node in enumerate(result["config"]["nodes"]):
                 config_lines.append(f"  Node {i + 1}: {node}")
-            config_lines.append("")
+            config_lines.append("")  # 每组之间空行
         config_text = "\n".join(config_lines)
 
         config_fig_height = 0.2 * len(config_lines) + 2
         fig, ax = plt.subplots(figsize=(8.5, config_fig_height))
         ax.axis('off')
-        ax.text(0.5, 1.02, "Other Group Configurations", ha='center', va='top', fontsize=13, weight='bold')
-        ax.text(0, 0.98, config_text, va='top', ha='left', wrap=True, fontsize=10, family='monospace')
+        ax.text(0.5, 1.02, "Group Configurations", ha='center', va='top', fontsize=13, weight='bold')
+        ax.text(0, 0.95, "\n" + config_text, va='top', ha='left', wrap=True, fontsize=10, family='monospace')
         pdf.savefig(fig)
         plt.close()
 
-    print("Multi-page PDF saved to simulation_table_with_config.pdf")
+    print("Multi-page PDF saved to simulation.pdf")
 
 
 if __name__ == "__main__":
