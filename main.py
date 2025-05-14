@@ -26,6 +26,9 @@ def main():
             ))
             bandwidth_sum += node_type['bandwidth']
 
+    print(setting['nodes'])
+    print(len(nodes))
+
     # 初始化哈希环
     hash_ring = HashRing(nodes)
 

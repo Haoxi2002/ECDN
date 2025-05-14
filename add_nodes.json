@@ -1,0 +1,11 @@
+{
+  "nodes":[
+    {
+      "num":500,
+      "cache":5000,
+      "bandwidth":1024,
+      "unit_price":1,
+      "cost_method":"A"
+    }
+  ]
+}

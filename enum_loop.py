@@ -29,6 +29,7 @@ def run_simulation(setting, cost_method_combination, bandwidth_option_combinatio
             ))
             bandwidth_sum += bandwidth_option_combination[idx]
 
+    print(len(nodes))
     # 初始化哈希环和请求处理器
     hash_ring = HashRing(nodes)
     request_handler = RequestHandler(hash_ring)
@@ -70,7 +71,7 @@ def run_simulation(setting, cost_method_combination, bandwidth_option_combinatio
 
 
 def main():
-    setting_enum = json.load(open('settings_enum_const_bw_test.json', 'r', encoding='utf-8'))
+    setting_enum = json.load(open('settings_enum_const_bw.json', 'r', encoding='utf-8'))
     all_results = []
 
     for group in setting_enum["node_groups"]:
@@ -89,7 +90,7 @@ def main():
         for i, node in enumerate(nodes):
             print(f"  Node {i + 1}: {node}")
 
-        for _ in range(2):
+        for _ in range(10):
             cost = run_simulation(
                 setting,
                 [node['cost_method'] for node in nodes],
@@ -160,7 +161,7 @@ def main():
     print(max_min_text)  # 打印最大最小成本的信息
 
     # 使用 PdfPages 生成 PDF
-    with PdfPages("simulation_results.pdf") as pdf:
+    with PdfPages("simulation_results_const_bw_2.pdf") as pdf:
         # 第1页：表格 + 标题 + 最大最小成本注释 + 基准组标注
         df = pd.DataFrame(table_data, columns=headers)
         fig, ax = plt.subplots(figsize=(8.5, 0.6 * len(df) + 2))  # 留空间给标题
@@ -176,7 +177,7 @@ def main():
         pdf.savefig(fig)
         plt.close()
 
-        # 第2页：所有配置
+        # 第2页：所有配置 (自动分页)
         config_lines = []
         for result in all_results:
             config_lines.append(f"Group {result['group_name']} config:")
@@ -185,15 +186,29 @@ def main():
             config_lines.append("")  # 每组之间空行
         config_text = "\n".join(config_lines)
 
-        config_fig_height = 0.2 * len(config_lines) + 2
-        fig, ax = plt.subplots(figsize=(8.5, config_fig_height))
-        ax.axis('off')
-        ax.text(0.5, 1.02, "Group Configurations", ha='center', va='top', fontsize=13, weight='bold')
-        ax.text(0, 0.95, "\n" + config_text, va='top', ha='left', wrap=True, fontsize=10, family='monospace')
-        pdf.savefig(fig)
-        plt.close()
+        # 每页显示的行数
+        lines_per_page = 20  # 你可以根据需要调整这个值
 
-    print("Multi-page PDF saved to simulation.pdf")
+        # 分页处理
+        def add_page_to_pdf(config_lines, start_line=0, lines_per_page=20):
+            # 获取当前页的内容
+            current_page_lines = config_lines[start_line:start_line + lines_per_page]
+            config_text_page = "\n".join(current_page_lines)
+
+            # 设置页面高度
+            config_fig_height = 0.2 * len(current_page_lines) + 2
+            fig, ax = plt.subplots(figsize=(8.5, config_fig_height))
+            ax.axis('off')
+            ax.text(0.5, 1.02, "Group Configurations", ha='center', va='top', fontsize=13, weight='bold')
+            ax.text(0, 0.95, "\n" + config_text_page, va='top', ha='left', wrap=True, fontsize=10, family='monospace')
+            pdf.savefig(fig)
+            plt.close()
+
+        # 添加分页内容
+        for i in range(0, len(config_lines), lines_per_page):
+            add_page_to_pdf(config_lines, start_line=i, lines_per_page=lines_per_page)
+
+        print("Multi-page PDF saved to simulation_results_const_bw.pdf")
 
 
 if __name__ == "__main__":
