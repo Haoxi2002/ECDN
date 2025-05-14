@@ -144,21 +144,21 @@ def main():
         tot_bandwidth = 0
         for node in nodes:
             node.record()
-            tot_cost += node.costs[-1]
+            tot_cost -= node.costs[-1]
             tot_bandwidth += node.bandwidths[-1]
         for business in businesses:
             business.record()
-            tot_cost -= business.costs[-1]
+            tot_cost += business.costs[-1]
         global_data["total_cost"].append(tot_cost)
         global_data["total_bandwidth"].append(tot_bandwidth)
         for node in nodes:
             global_data["nodes"].setdefault(node.hostname, {"bandwidths": [], "costs": [], 'new': True})
             global_data["nodes"][node.hostname]["bandwidths"].append(node.bandwidths[-1])
-            global_data["nodes"][node.hostname]["costs"].append(node.costs[-1])
+            global_data["nodes"][node.hostname]["costs"].append(-1 * node.costs[-1])
         for business in businesses:
             global_data["businesses"].setdefault(business.app_id, {"bandwidths": [], "costs": [], 'new': True})
             global_data["businesses"][business.app_id]["bandwidths"].append(business.bandwidths[-1])
-            global_data["businesses"][business.app_id]["costs"].append(-1 * business.costs[-1])
+            global_data["businesses"][business.app_id]["costs"].append(business.costs[-1])
         global_data["fetch_ratio"] = request_handler.fetch_from_origin_num / request_handler.request_num * 100
         global_data["bandwidth_ratio"] = tot_bandwidth / bandwidth_sum * 100
 
