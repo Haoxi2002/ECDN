@@ -43,7 +43,7 @@ def main():
             wave_file=business['wave_file']
         ))
 
-    tot_cost = 0
+    tot_profit = 0
     # 业务发送请求
     for timestamp in tqdm.tqdm(range(0, 2592000, 300), desc="Processing timestamps"):
         for business in businesses:
@@ -51,20 +51,20 @@ def main():
         for node in nodes:
             node.record()
             if node.cost_method == 'B' and timestamp % 86400 == 0:
-                tot_cost += node.get_cost()
+                tot_profit -= node.get_cost()
         for business in businesses:
             business.record()
             if business.cost_method == 'B' and timestamp % 86400 == 0:
-                tot_cost -= business.get_cost()
+                tot_profit += business.get_cost()
 
     for node in nodes:
         if node.cost_method == 'A':
-            tot_cost += node.get_cost() * 30
+            tot_profit -= node.get_cost() * 30
     for business in businesses:
         if business.cost_method == 'A':
-            tot_cost -= business.get_cost() * 30
+            tot_profit += business.get_cost() * 30
 
-    print('Total Cost: ' + str(tot_cost))
+    print('Total Profit: ' + str(tot_profit))
 
 
 if __name__ == "__main__":

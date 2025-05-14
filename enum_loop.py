@@ -44,7 +44,7 @@ def run_simulation(setting, cost_method_combination, bandwidth_option_combinatio
             wave_file=business['wave_file']
         ))
 
-    tot_cost = 0
+    tot_profit = 0
     for timestamp in tqdm.tqdm(range(0, 2592000, 300), desc="Processing timestamps"):
         for business in businesses:
             business.send_request(request_handler, timestamp)
@@ -52,21 +52,21 @@ def run_simulation(setting, cost_method_combination, bandwidth_option_combinatio
         for node in nodes:
             node.record()
             if node.cost_method == 'B' and timestamp % 86400 == 0:
-                tot_cost += node.get_cost()
+                tot_profit -= node.get_cost()
 
         for business in businesses:
             business.record()
             if business.cost_method == 'B' and timestamp % 86400 == 0:
-                tot_cost -= business.get_cost()
+                tot_profit += business.get_cost()
 
     for node in nodes:
         if node.cost_method == 'A':
-            tot_cost += node.get_cost() * 30
+            tot_profit -= node.get_cost() * 30
     for business in businesses:
         if business.cost_method == 'A':
-            tot_cost -= business.get_cost() * 30
+            tot_profit += business.get_cost() * 30
 
-    return tot_cost
+    return tot_profit
 
 
 def main():
@@ -82,7 +82,7 @@ def main():
         group_name = group["group_name"]
         nodes = group["nodes"]
 
-        last_total_costs = []
+        last_total_profits = []
 
         # 打印当前 group 的详细配置
         print(f"\n[Group: {group_name}] 当前节点配置:")
@@ -90,15 +90,15 @@ def main():
             print(f"  Node {i + 1}: {node}")
 
         for _ in range(2):
-            cost = run_simulation(
+            profit = run_simulation(
                 setting,
                 [node['cost_method'] for node in nodes],
                 [node['bandwidth'] for node in nodes]
             )
-            last_total_costs.append(cost)
+            last_total_profits.append(profit)
 
-        avg_cost = round(statistics.mean(last_total_costs), 2)  # 保留两位小数
-        variance_cost = round(statistics.variance(last_total_costs), 2)  # 保留两位小数
+        avg_profit = round(statistics.mean(last_total_profits), 2)  # 保留两位小数
+        variance_profit = round(statistics.variance(last_total_profits), 2)  # 保留两位小数
 
         all_results.append({
             "group_name": group_name,
@@ -106,13 +106,13 @@ def main():
             "config": {
                 "nodes": nodes
             },
-            "avg_cost": avg_cost,
-            "variance_cost": variance_cost,
+            "avg_profit": avg_profit,
+            "variance_profit": variance_profit,
         })
 
         print(f"Group {group_name}:")
-        print(f"  Average Cost: {avg_cost}")
-        print(f"  Variance Cost: {variance_cost}")
+        print(f"  Average Profit: {avg_profit}")
+        print(f"  Variance Profit: {variance_profit}")
         print("\n")
 
     # 配置展示
@@ -124,7 +124,7 @@ def main():
 
     # 表格展示
     print("\n--- Final Simulation Results ---")
-    headers = ["Group", "Avg Cost", "Cost Var", "Avg Cost Diff"]
+    headers = ["Group", "Avg Profit", "Profit Var", "Avg Profit Diff"]
 
     # 设置基准组
     baseline_group_name = "group1"
@@ -134,26 +134,26 @@ def main():
     if baseline is None:
         raise ValueError(f"Baseline group '{baseline_group_name}' not found!")
 
-    baseline_cost = baseline['avg_cost']
+    baseline_profit = baseline['avg_profit']
 
     # 构建数据，计算与 baseline 的差，保留两位小数
     table_data = [
         [
             r['group_name'],
-            f"{r['avg_cost']:.2f}",  # 保留两位小数
-            f"{r['variance_cost']:.2f}",  # 保留两位小数
-            f"{r['avg_cost'] - baseline_cost:.2f}"  # 保留两位小数
+            f"{r['avg_profit']:.2f}",  # 保留两位小数
+            f"{r['variance_profit']:.2f}",  # 保留两位小数
+            f"{r['avg_profit'] - baseline_profit:.2f}"  # 保留两位小数
         ]
         for r in all_results
     ]
 
-    # 获取最大和最小成本
-    max_cost_group = max(all_results, key=lambda x: x['avg_cost'])
-    min_cost_group = min(all_results, key=lambda x: x['avg_cost'])
+    # 获取最大和最小利润
+    max_profit_group = max(all_results, key=lambda x: x['avg_profit'])
+    min_profit_group = min(all_results, key=lambda x: x['avg_profit'])
 
     # 计算最大和最小成本的差异
-    max_min_text = f"Max Cost Group: {max_cost_group['group_name']} (Avg Cost: {max_cost_group['avg_cost']:.2f})\n"
-    max_min_text += f"Min Cost Group: {min_cost_group['group_name']} (Avg Cost: {min_cost_group['avg_cost']:.2f})"
+    max_min_text = f"Max Profit Group: {max_profit_group['group_name']} (Avg Profit: {max_profit_group['avg_profit']:.2f})\n"
+    max_min_text += f"Min Profit Group: {min_profit_group['group_name']} (Avg Profit: {min_profit_group['avg_profit']:.2f})"
 
     print(tabulate(table_data, headers=headers, tablefmt="grid"))
     print(f"Baseline Group: {baseline_group_name}")
